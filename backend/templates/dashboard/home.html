@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="section-title">Панель управления</h1>
+    <p class="muted">Сводка по оборудованию в рамках доступных вам юрлиц и локаций.</p>
+</div>
+
+<div class="grid">
+    <div class="card">
+        <div>Всего оборудования</div>
+        <div class="stat">{{ equipment_count }}</div>
+    </div>
+
+    <div class="card">
+        <div>Активное оборудование</div>
+        <div class="stat">{{ active_equipment_count }}</div>
+    </div>
+
+    <div class="card">
+        <div>В ремонте</div>
+        <div class="stat">{{ repair_count }}</div>
+    </div>
+
+    <div class="card">
+        <div>Требует внимания</div>
+        <div class="stat">{{ notification_total }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="page-header">
+        <h3>Требует внимания</h3>
+        <a href="{% url 'notifications' %}" class="btn btn-secondary">Открыть все</a>
+    </div>
+
+    {% if notification_groups %}
+        <div class="notification-list">
+            {% for group in notification_groups %}
+                <div class="notification-group">
+                    <div class="notification-heading">
+                        <strong>{{ group.title }}</strong>
+                        <span>{{ group.count }}</span>
+                    </div>
+                    {% for item in group.items %}
+                        <a href="{{ item.url }}" class="notification-item notification-{{ item.severity }}">
+                            <strong>{{ item.title }}</strong>
+                            <span>{{ item.subtitle }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="empty-state">Сейчас нет критичных уведомлений.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>Быстрые действия</h3>
+    <div class="actions-row">
+        <a href="{% url 'equipment_list' %}" class="btn">Перейти к оборудованию</a>
+        <a href="{% url 'global_search' %}" class="btn btn-secondary">Глобальный поиск</a>
+        <a href="{% url 'reports_home' %}" class="btn btn-secondary">Отчеты</a>
+    </div>
+</div>
+{% endblock %}

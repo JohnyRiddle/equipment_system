@@ -1,0 +1,19 @@
+<div class="card">
+    <div class="page-header">
+        <h3>{{ title }}</h3>
+        <span class="muted">{{ items|length }}</span>
+    </div>
+
+    {% if items %}
+        <div class="search-results">
+            {% for item in items %}
+                <a href="{{ item.url }}" class="search-result">
+                    <strong>{{ item.title }}</strong>
+                    <span>{{ item.subtitle }}</span>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="empty-state">Нет результатов</p>
+    {% endif %}
+</div>

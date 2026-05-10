@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Глобальный поиск{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Глобальный поиск</h1>
+        <p class="muted">Поиск по оборудованию, меткам, доступам, ремонтам, инвентаризациям и перемещениям.</p>
+    </div>
+</div>
+
+<div class="card">
+    <form method="get" action="{% url 'global_search' %}" class="search-form">
+        <input type="search" name="q" value="{{ query }}" class="search-input" placeholder="Название, серийный номер, QR/NFC, доступ, акт, ремонт">
+        <button type="submit" class="btn">Найти</button>
+    </form>
+</div>
+
+{% if query and query|length < min_query_length %}
+    <div class="card">
+        <p class="empty-state">Введите минимум {{ min_query_length }} символа.</p>
+    </div>
+{% elif query %}
+    <div class="card">
+        <p class="muted">Найдено результатов: {{ total_count }}</p>
+    </div>
+
+    {% include 'dashboard/search_section.html' with title='Оборудование' items=results.equipment %}
+    {% include 'dashboard/search_section.html' with title='QR/NFC метки' items=results.tags %}
+    {% include 'dashboard/search_section.html' with title='Доступы' items=results.accesses %}
+    {% include 'dashboard/search_section.html' with title='Ремонты' items=results.repairs %}
+    {% include 'dashboard/search_section.html' with title='Инвентаризация' items=results.inventory %}
+    {% include 'dashboard/search_section.html' with title='Перемещения' items=results.movements %}
+{% else %}
+    <div class="card">
+        <p class="empty-state">Введите запрос, чтобы найти данные по всем доступным разделам.</p>
+    </div>
+{% endif %}
+{% endblock %}

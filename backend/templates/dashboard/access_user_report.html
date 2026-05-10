@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Доступы по сотрудникам{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="page-header">
+        <div>
+            <h1 class="section-title">Доступы по сотрудникам</h1>
+            <p class="muted">Персональные гранты без раскрытия секретов.</p>
+        </div>
+        <div class="actions-row">
+            <a href="{% url 'equipment_access_list' %}" class="btn btn-secondary">К доступам</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <form method="get" class="filter-form">
+        <div class="filter-grid">
+            <div class="form-group">
+                <label for="q">Поиск</label>
+                <input type="text" name="q" id="q" value="{{ query }}" placeholder="Пользователь, email, доступ или оборудование">
+            </div>
+        </div>
+        <div class="actions-row">
+            <button type="submit" class="btn">Применить</button>
+            <a href="{% url 'access_user_report' %}" class="btn btn-secondary">Сбросить</a>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    {% if grants %}
+        <div class="table-wrapper">
+            <table class="equipment-table">
+                <thead>
+                    <tr>
+                        <th>Пользователь</th>
+                        <th>Email</th>
+                        <th>Доступ</th>
+                        <th>Тип</th>
+                        <th>Оборудование</th>
+                        <th>Юрлицо</th>
+                        <th>Локация</th>
+                        <th>Уровень</th>
+                        <th>Истекает</th>
+                        <th>Выдал</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for grant in grants %}
+                        <tr>
+                            <td>{{ grant.user }}</td>
+                            <td>{{ grant.user.email|default:"-" }}</td>
+                            <td>
+                                <a href="{% url 'equipment_access_detail' grant.access.pk %}" class="table-link">{{ grant.access.title }}</a>
+                            </td>
+                            <td>{{ grant.access.access_type|default:"-" }}</td>
+                            <td>{{ grant.access.equipment|default:"-" }}</td>
+                            <td>{{ grant.access.legal_entity|default:"-" }}</td>
+                            <td>{{ grant.access.location|default:"-" }}</td>
+                            <td>{{ grant.get_level_display }}</td>
+                            <td>{{ grant.expires_at|default:"-" }}</td>
+                            <td>{{ grant.granted_by|default:"-" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_paginated %}
+            <div class="pagination-block">
+                <div class="pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1{% if filter_querystring %}&{{ filter_querystring }}{% endif %}">Первая</a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% if filter_querystring %}&{{ filter_querystring }}{% endif %}">Назад</a>
+                    {% endif %}
+                    <span class="pagination-current">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if filter_querystring %}&{{ filter_querystring }}{% endif %}">Вперед</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% if filter_querystring %}&{{ filter_querystring }}{% endif %}">Последняя</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="empty-state-block">
+            <p class="empty-state">Персональные гранты пока не выданы</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

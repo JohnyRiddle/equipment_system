@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Инвентаризировать позицию{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="section-title">Инвентаризировать позицию</h1>
+    <p class="muted">{{ item.equipment.name }} · {{ session.name }}</p>
+</div>
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-grid">
+            {% for field in form %}
+                <div class="form-group {% if field.name == 'found' %}checkbox-group{% endif %} {% if field.name == 'comment' %}form-group-wide{% endif %}">
+                    {% if field.name == 'found' %}
+                        <label for="{{ field.id_for_label }}">{{ field }} {{ field.label }}</label>
+                    {% else %}
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                    {% endif %}
+                    {% if field.errors %}<div class="form-error">{{ field.errors }}</div>{% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <div class="actions-row">
+            <button type="submit" class="btn">Сохранить</button>
+            <a href="{% url 'inventory_session_detail' session.pk %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

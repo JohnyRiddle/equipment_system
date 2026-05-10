@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Печать акта инвентаризации</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 18mm;
+            color: #111827;
+            background: #ffffff;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 12px;
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: 22px;
+            text-align: center;
+        }
+
+        p {
+            margin: 4px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 14px;
+        }
+
+        th,
+        td {
+            padding: 6px;
+            border: 1px solid #9ca3af;
+            vertical-align: top;
+            text-align: left;
+        }
+
+        th {
+            background: #f3f4f6;
+            font-weight: 700;
+        }
+
+        .act-meta {
+            margin-bottom: 16px;
+        }
+
+        .signatures {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 28px;
+        }
+
+        .signature-line {
+            padding-top: 28px;
+            border-bottom: 1px solid #111827;
+        }
+
+        @page {
+            size: A4;
+            margin: 12mm;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Акт инвентаризации</h1>
+
+    <section class="act-meta">
+        <p><strong>Номер:</strong> {{ session.act_number|default:"-" }}</p>
+        <p><strong>Инвентаризация:</strong> {{ session.name }}</p>
+        <p><strong>Юридическое лицо:</strong> {{ session.legal_entity }}</p>
+        <p><strong>Локация:</strong> {{ session.location }}</p>
+        <p><strong>Период:</strong> {{ session.period_start|default:"-" }} - {{ session.period_end|default:"-" }}</p>
+        <p><strong>Статус:</strong> {{ session.get_status_display }}</p>
+        <p><strong>Подтверждено:</strong> {{ session.confirmed_at|default:"-" }} {{ session.confirmed_by|default:"" }}</p>
+    </section>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Оборудование</th>
+                <th>Инв. номер</th>
+                <th>План</th>
+                <th>Факт</th>
+                <th>Состояние</th>
+                <th>Комментарий</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+                <tr>
+                    <td>{{ item.equipment.name }}</td>
+                    <td>{{ item.equipment.inventory_number|default:"-" }}</td>
+                    <td>{{ item.equipment.location }} / {{ item.equipment.warehouse }}</td>
+                    <td>{{ item.actual_location|default:"-" }} / {{ item.actual_warehouse|default:"-" }}</td>
+                    <td>{{ item.get_condition_status_display }}</td>
+                    <td>{{ item.comment|default:"-" }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6">Позиции не добавлены.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <section class="signatures">
+        <div>
+            <div class="signature-line"></div>
+            <p>Ответственный за инвентаризацию</p>
+        </div>
+        <div>
+            <div class="signature-line"></div>
+            <p>Подтверждающий</p>
+        </div>
+    </section>
+
+    <script>
+        window.addEventListener('load', function () {
+            window.print();
+        });
+    </script>
+</body>
+</html>

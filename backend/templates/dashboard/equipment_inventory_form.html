@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Добавление инвентаризации{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="section-title">Добавление инвентаризации</h1>
+    <p class="muted">{{ equipment.name }}</p>
+</div>
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-grid">
+            {% for field in form %}
+                <div class="form-group {% if field.name == 'comment' %}form-group-wide{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="form-error">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="actions-row">
+            <button type="submit" class="btn">Сохранить</button>
+            <a href="{% url 'equipment_detail' equipment.pk %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

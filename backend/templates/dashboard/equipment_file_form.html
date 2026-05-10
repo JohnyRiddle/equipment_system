@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Добавление файла{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="section-title">Добавление файла</h1>
+    <p class="muted">{{ equipment.name }}</p>
+</div>
+
+<div class="card">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                    <div class="form-error">{{ form.title.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.file.id_for_label }}">{{ form.file.label }}</label>
+                {{ form.file }}
+                {% if form.file.errors %}
+                    <div class="form-error">{{ form.file.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.comment.id_for_label }}">{{ form.comment.label }}</label>
+            {{ form.comment }}
+            {% if form.comment.errors %}
+                <div class="form-error">{{ form.comment.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="actions-row">
+            <button type="submit" class="btn">Сохранить</button>
+            <a href="{% url 'equipment_detail' equipment.pk %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Добавление фото{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="section-title">Добавление фото</h1>
+    <p class="muted">{{ equipment.name }}</p>
+</div>
+
+<div class="card">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="{{ form.image.id_for_label }}">{{ form.image.label }}</label>
+                {{ form.image }}
+                {% if form.image.errors %}
+                    <div class="form-error">{{ form.image.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.caption.id_for_label }}">{{ form.caption.label }}</label>
+                {{ form.caption }}
+                {% if form.caption.errors %}
+                    <div class="form-error">{{ form.caption.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-group checkbox-group">
+            <label for="{{ form.is_primary.id_for_label }}">
+                {{ form.is_primary }} {{ form.is_primary.label }}
+            </label>
+        </div>
+
+        <div class="actions-row">
+            <button type="submit" class="btn">Сохранить</button>
+            <a href="{% url 'equipment_detail' equipment.pk %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

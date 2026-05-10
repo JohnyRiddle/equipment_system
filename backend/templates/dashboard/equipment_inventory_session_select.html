@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Добавить в инвентаризацию{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="section-title">Добавить в инвентаризацию</h1>
+    <p class="muted">{{ equipment.name }}</p>
+</div>
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="{{ form.session.id_for_label }}">{{ form.session.label }}</label>
+            {{ form.session }}
+            {% if form.session.errors %}<div class="form-error">{{ form.session.errors }}</div>{% endif %}
+        </div>
+        <div class="actions-row">
+            <button type="submit" class="btn">Добавить</button>
+            <a href="{% url 'equipment_detail' equipment.pk %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

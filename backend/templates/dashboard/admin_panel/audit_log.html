@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Журнал действий{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="page-header">
+        <div>
+            <h1 class="section-title">Журнал действий</h1>
+            <p class="muted">Создание, изменение, архивирование, перемещения, раскрытие секретов и другие события.</p>
+        </div>
+        <a href="{% url 'admin_panel_home' %}" class="btn btn-secondary">Все разделы</a>
+    </div>
+</div>
+
+<div class="card">
+    <form method="get" class="filter-form">
+        <div class="filter-grid">
+            <div class="form-group">
+                <label for="q">Поиск</label>
+                <input type="text" name="q" id="q" value="{{ query }}" placeholder="Пользователь, объект, описание">
+            </div>
+
+            <div class="form-group">
+                <label for="action">Действие</label>
+                <select name="action" id="action">
+                    <option value="">Все действия</option>
+                    {% for value, label in actions %}
+                        <option value="{{ value }}" {% if selected_action == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="actor">Пользователь</label>
+                <select name="actor" id="actor">
+                    <option value="">Все пользователи</option>
+                    {% for actor in actors %}
+                        <option value="{{ actor.pk }}" {% if selected_actor == actor.pk|stringformat:"s" %}selected{% endif %}>{{ actor.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="actions-row">
+            <button type="submit" class="btn">Найти</button>
+            <a href="{% url 'audit_log' %}" class="btn btn-secondary">Сбросить</a>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    {% if logs %}
+        <div class="table-wrapper">
+            <table class="equipment-table">
+                <thead>
+                    <tr>
+                        <th>Время</th>
+                        <th>Пользователь</th>
+                        <th>Действие</th>
+                        <th>Объект</th>
+                        <th>Описание</th>
+                        <th>IP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                        <tr>
+                            <td>{{ log.created_at }}</td>
+                            <td>{{ log.actor|default:"system" }}</td>
+                            <td>{{ log.get_action_display }}</td>
+                            <td>
+                                {{ log.object_repr|default:"-" }}
+                                {% if log.content_type %}
+                                    <p class="muted">{{ log.content_type.app_label }}.{{ log.content_type.model }} {{ log.object_id }}</p>
+                                {% endif %}
+                            </td>
+                            <td>{{ log.message|default:"-" }}</td>
+                            <td>{{ log.ip_address|default:"-" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_paginated %}
+            <div class="pagination-block">
+                <div class="pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% if filter_querystring %}&{{ filter_querystring }}{% endif %}">Назад</a>
+                    {% endif %}
+                    <span class="pagination-current">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if filter_querystring %}&{{ filter_querystring }}{% endif %}">Вперед</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <p class="empty-state">Событий пока нет.</p>
+    {% endif %}
+</div>
+{% endblock %}

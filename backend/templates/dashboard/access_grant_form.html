@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Выдача доступа{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="section-title">Выдача доступа</h1>
+    <p class="muted">{{ access.title }}</p>
+</div>
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-error">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="form-grid">
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="form-error">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="actions-row">
+            <button type="submit" class="btn">Сохранить грант</button>
+            <a href="{% url 'equipment_access_detail' access.pk %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

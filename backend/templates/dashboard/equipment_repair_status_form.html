@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Статус ремонта{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="section-title">Заявка на ремонт</h1>
+    <p class="muted">{{ equipment.name }}</p>
+</div>
+
+<div class="card">
+    <div class="info-row">
+        <span class="info-label">Проблема:</span>
+        <span class="info-value">{{ repair.description }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Текущий статус:</span>
+        <span class="info-value">{{ repair.get_status_display }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Приоритет:</span>
+        <span class="info-value">{{ repair.get_priority_display }}</span>
+    </div>
+</div>
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-grid">
+            {% for field in form %}
+                <div class="form-group {% if field.name == 'resolution' or field.name == 'status_comment' %}form-group-wide{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="form-error">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="actions-row">
+            <button type="submit" class="btn">Обновить статус</button>
+            <a href="{% url 'equipment_detail' equipment.pk %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

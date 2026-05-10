@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Администрирование{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="page-header">
+        <div>
+            <h1 class="section-title">Администрирование</h1>
+            <p class="muted">Справочники, пользователи и права доступа.</p>
+        </div>
+    </div>
+</div>
+
+<div class="admin-grid">
+    <a href="{% url 'audit_log' %}" class="admin-card">
+        <span class="admin-card-title">Журнал действий</span>
+        <span class="admin-card-count">Audit</span>
+    </a>
+    {% for card in cards %}
+        <a href="{% url 'admin_section_list' card.key %}" class="admin-card">
+            <span class="admin-card-title">{{ card.title }}</span>
+            <span class="admin-card-count">{{ card.count }}</span>
+        </a>
+    {% endfor %}
+</div>
+{% endblock %}

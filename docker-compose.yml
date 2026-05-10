@@ -1,0 +1,42 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: equipment_web
+    restart: always
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             python manage.py runserver 0.0.0.0:8000"
+    environment:
+      DJANGO_DEBUG: "1"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1,192.168.10.183,192.168.10.183:8000"
+      POSTGRES_DB: equipment_db
+      POSTGRES_USER: equipment_user
+      POSTGRES_PASSWORD: equipment_pass
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/media:/app/media
+      - ./backend/staticfiles:/app/staticfiles
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    container_name: equipment_db
+    restart: always
+    environment:
+      POSTGRES_DB: equipment_db
+      POSTGRES_USER: equipment_user
+      POSTGRES_PASSWORD: equipment_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

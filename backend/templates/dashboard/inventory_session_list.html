@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Инвентаризация{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="page-header">
+        <div>
+            <h1 class="section-title">Инвентаризация</h1>
+            <p class="muted">Акты инвентаризации оборудования.</p>
+        </div>
+        {% if can_create_inventory %}
+            <a href="{% url 'inventory_session_create' %}" class="btn">Создать акт</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <form method="get" class="filter-form">
+        <div class="filter-grid">
+            <div class="form-group">
+                <label for="q">Поиск</label>
+                <input type="text" name="q" id="q" value="{{ query }}" placeholder="Название, номер акта">
+            </div>
+            <div class="form-group">
+                <label for="status">Статус</label>
+                <select name="status" id="status">
+                    <option value="">Все статусы</option>
+                    {% for value, label in statuses %}
+                        <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="actions-row">
+            <button type="submit" class="btn">Найти</button>
+            <a href="{% url 'inventory_session_list' %}" class="btn btn-secondary">Сбросить</a>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    {% if sessions %}
+        <div class="table-wrapper">
+            <table class="equipment-table">
+                <thead>
+                    <tr>
+                        <th>Акт</th>
+                        <th>Юрлицо</th>
+                        <th>Локация</th>
+                        <th>Период</th>
+                        <th>Статус</th>
+                        <th>Подтверждено</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in sessions %}
+                        <tr>
+                            <td><a href="{% url 'inventory_session_detail' session.pk %}" class="table-link">{{ session.name }}</a></td>
+                            <td>{{ session.legal_entity }}</td>
+                            <td>{{ session.location }}</td>
+                            <td>{{ session.period_start|default:"—" }} — {{ session.period_end|default:"—" }}</td>
+                            <td>{{ session.get_status_display }}</td>
+                            <td>{{ session.confirmed_at|default:"—" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="empty-state">Актов пока нет.</p>
+    {% endif %}
+</div>
+{% endblock %}

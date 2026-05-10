@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Печать QR</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+
+        .item img {
+            max-width: 120px;
+        }
+
+        .name {
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .inv {
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .print-actions {
+            margin-bottom: 20px;
+        }
+
+        @media print {
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="no-print print-actions">
+    <button onclick="window.print()">Печать</button>
+</div>
+
+<div class="grid">
+    {% for item in items %}
+        <div class="item">
+            {% if item.tag.qr_image %}
+                <img src="{{ item.tag.qr_image.url }}">
+            {% endif %}
+
+            <div class="inv">
+                {{ item.equipment.inventory_number }}
+            </div>
+
+            <div class="name">
+                {{ item.equipment.name }}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+</body>
+</html>

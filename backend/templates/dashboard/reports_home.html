@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}Отчеты{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Отчеты</h1>
+        <p class="muted">Сводки и выгрузки по оборудованию, ремонтам, инвентаризации и перемещениям.</p>
+    </div>
+</div>
+
+<div class="grid">
+    <div class="card">
+        <div>Всего оборудования</div>
+        <div class="stat">{{ equipment_total }}</div>
+    </div>
+    <div class="card">
+        <div>Активное оборудование</div>
+        <div class="stat">{{ equipment_active }}</div>
+    </div>
+    <div class="card">
+        <div>Открытые ремонты</div>
+        <div class="stat">{{ repair_open }}</div>
+    </div>
+    <div class="card">
+        <div>Перемещений</div>
+        <div class="stat">{{ movement_total }}</div>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="card">
+        <div class="page-header">
+            <h3>Оборудование</h3>
+            <div class="table-actions">
+                <a href="{% url 'equipment_report_export_csv' %}?activity=all" class="btn btn-secondary">CSV</a>
+                <a href="{% url 'equipment_report_export_xlsx' %}?activity=all" class="btn btn-secondary">Excel</a>
+                <a href="{% url 'equipment_report_export_pdf' %}?activity=all" class="btn btn-secondary">PDF</a>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Статус</th>
+                    <th>Количество</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in equipment_by_status %}
+                    <tr>
+                        <td>{{ row.status__name|default:"Без статуса" }}</td>
+                        <td>{{ row.total }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="2" class="empty-state">Нет данных</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="page-header">
+            <h3>Локации</h3>
+            <a href="{% url 'equipment_list' %}" class="btn btn-secondary">Открыть</a>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Локация</th>
+                    <th>Оборудование</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in equipment_by_location %}
+                    <tr>
+                        <td>{{ row.location__name|default:"Без локации" }}</td>
+                        <td>{{ row.total }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="2" class="empty-state">Нет данных</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="card">
+        <div class="page-header">
+            <h3>Ремонты</h3>
+            <div class="table-actions">
+                <a href="{% url 'repair_report_export_csv' %}" class="btn btn-secondary">CSV</a>
+                <a href="{% url 'repair_report_export_xlsx' %}" class="btn btn-secondary">Excel</a>
+                <a href="{% url 'repair_report_export_pdf' %}" class="btn btn-secondary">PDF</a>
+            </div>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Всего заявок:</span>
+            <span class="info-value">{{ repair_total }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Открыто:</span>
+            <span class="info-value">{{ repair_open }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Сумма ремонтов:</span>
+            <span class="info-value">{{ repair_cost_total }}</span>
+        </div>
+        <form method="get" action="{% url 'repair_report_export_csv' %}" class="filters-form">
+            <div class="form-group">
+                <label for="repair-date-from">С даты</label>
+                <input type="date" id="repair-date-from" name="date_from" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="repair-date-to">По дату</label>
+                <input type="date" id="repair-date-to" name="date_to" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="repair-status">Статус</label>
+                <select id="repair-status" name="status" class="form-control">
+                    <option value="">Все</option>
+                    {% for value, label in repair_status_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn">Скачать CSV</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="page-header">
+            <h3>Инвентаризация</h3>
+            <div class="table-actions">
+                <a href="{% url 'inventory_report_export_csv' %}" class="btn btn-secondary">CSV</a>
+                <a href="{% url 'inventory_report_export_xlsx' %}" class="btn btn-secondary">Excel</a>
+                <a href="{% url 'inventory_report_export_pdf' %}" class="btn btn-secondary">PDF</a>
+            </div>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Всего актов:</span>
+            <span class="info-value">{{ inventory_total }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Подтверждено:</span>
+            <span class="info-value">{{ inventory_completed }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Проверено позиций:</span>
+            <span class="info-value">{{ inventory_found_count }} / {{ inventory_item_count }}</span>
+        </div>
+        <form method="get" action="{% url 'inventory_report_export_csv' %}" class="filters-form">
+            <div class="form-group">
+                <label for="inventory-date-from">С даты</label>
+                <input type="date" id="inventory-date-from" name="date_from" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="inventory-date-to">По дату</label>
+                <input type="date" id="inventory-date-to" name="date_to" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="inventory-status">Статус</label>
+                <select id="inventory-status" name="status" class="form-control">
+                    <option value="">Все</option>
+                    {% for value, label in inventory_status_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn">Скачать CSV</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="page-header">
+        <div>
+            <h3>Перемещения</h3>
+            <p class="muted">Журнал перемещений оборудования между локациями, ЦФО и зонами.</p>
+        </div>
+        <div class="table-actions">
+            <a href="{% url 'movement_report_export_csv' %}" class="btn btn-secondary">CSV</a>
+            <a href="{% url 'movement_report_export_xlsx' %}" class="btn btn-secondary">Excel</a>
+            <a href="{% url 'movement_report_export_pdf' %}" class="btn btn-secondary">PDF</a>
+        </div>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Всего перемещений:</span>
+        <span class="info-value">{{ movement_total }}</span>
+    </div>
+    <div class="actions-row">
+        <a href="{% url 'movement_journal' %}" class="btn btn-secondary">Открыть журнал</a>
+    </div>
+</div>
+{% endblock %}

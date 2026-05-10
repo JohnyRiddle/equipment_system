@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Перемещение оборудования{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="section-title">Перемещение оборудования</h1>
+    <p><strong>{{ equipment.name }}</strong></p>
+    <p class="muted">Инвентарный номер: {{ equipment.inventory_number }}</p>
+    <p class="muted">Текущая локация: {{ equipment.location|default:"—" }}</p>
+</div>
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="{{ form.legal_entity.id_for_label }}">{{ form.legal_entity.label }}</label>
+            {{ form.legal_entity }}
+            {% if form.legal_entity.errors %}
+                <div class="form-error">{{ form.legal_entity.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.to_location.id_for_label }}">{{ form.to_location.label }}</label>
+            {{ form.to_location }}
+            {% if form.to_location.errors %}
+                <div class="form-error">{{ form.to_location.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.to_cost_center.id_for_label }}">{{ form.to_cost_center.label }}</label>
+            {{ form.to_cost_center }}
+            {% if form.to_cost_center.errors %}
+                <div class="form-error">{{ form.to_cost_center.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.to_warehouse.id_for_label }}">{{ form.to_warehouse.label }}</label>
+            {{ form.to_warehouse }}
+            {% if form.to_warehouse.errors %}
+                <div class="form-error">{{ form.to_warehouse.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.comment.id_for_label }}">{{ form.comment.label }}</label>
+            {{ form.comment }}
+            {% if form.comment.errors %}
+                <div class="form-error">{{ form.comment.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="actions-row">
+            <button type="submit" class="btn">Сохранить</button>
+            <a href="{% url 'equipment_detail' equipment.pk %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'js/equipment_form.js' %}"></script>
+{% endblock %}

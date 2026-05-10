@@ -1,0 +1,484 @@
+{% extends 'base.html' %}
+
+{% block body_class %}
+{% if request.GET.mobile == '1' %}mobile-mode{% endif %}
+{% endblock %}
+
+{% block title %}Карточка оборудования{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="page-header">
+        <div>
+            <h1 class="section-title">{{ equipment.name }}</h1>
+            <p class="muted">
+                {{ equipment.inventory_number|default:"Без инвентарного номера" }}
+                {% if equipment.status %}
+                    <span class="badge">{{ equipment.status }}</span>
+                {% endif %}
+            </p>
+        </div>
+
+        {% if can_edit_equipment %}
+            <div class="actions-column">
+                <a href="{% url 'equipment_update' equipment.pk %}" class="btn btn-secondary">Редактировать</a>
+                <a href="{% url 'equipment_move' equipment.pk %}" class="btn">Переместить</a>
+                <a href="{% url 'equipment_repair_create' equipment.pk %}" class="btn btn-secondary">Отправить в ремонт</a>
+                {% if active_inventory_sessions %}
+                    <a href="{% url 'equipment_add_to_inventory_session' equipment.pk %}" class="btn btn-secondary">Добавить в инвентаризацию</a>
+                {% endif %}
+                <form method="post" action="{% url 'equipment_regenerate_qr' equipment.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-secondary">Обновить QR</button>
+                </form>
+                {% if equipment.is_active %}
+                    <form method="post" action="{% url 'equipment_archive' equipment.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-secondary">Архивировать</button>
+                    </form>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="card">
+        <h3>Основная информация</h3>
+
+        <div class="info-list">
+            <div class="info-row">
+                <span class="info-label">Юридическое лицо:</span>
+                <span class="info-value">{{ equipment.legal_entity|default:"—" }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Локация:</span>
+                <span class="info-value">{{ equipment.location|default:"—" }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">ЦФО:</span>
+                <span class="info-value">{{ equipment.cost_center|default:"—" }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Склад:</span>
+                <span class="info-value">{{ equipment.warehouse|default:"—" }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Зона размещения:</span>
+                <span class="info-value">{{ equipment.placement_zone|default:"—" }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Категория:</span>
+                <span class="info-value">{{ equipment.category|default:"—" }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Бренд:</span>
+                <span class="info-value">{{ equipment.brand|default:"—" }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Модель:</span>
+                <span class="info-value">{{ equipment.model|default:"—" }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Серийный номер:</span>
+                <span class="info-value">{{ equipment.serial_number|default:"—" }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Инвентарный номер:</span>
+                <span class="info-value">{{ equipment.inventory_number|default:"—" }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Дата покупки:</span>
+                <span class="info-value">{{ equipment.purchase_date|default:"—" }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Гарантия до:</span>
+                <span class="info-value">{{ equipment.warranty_until|default:"—" }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Цена приобретения:</span>
+                <span class="info-value">{{ equipment.price|default:"—" }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Оценочная стоимость:</span>
+                <span class="info-value">{{ equipment.estimated_current_value|default:"—" }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Последняя инвентаризация:</span>
+                <span class="info-value">{{ equipment.last_inventory_date|default:"—" }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Последний ремонт:</span>
+                <span class="info-value">{{ equipment.last_repair_date|default:"—" }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Ответственный:</span>
+                <span class="info-value">{{ equipment.responsible_user|default:"—" }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Активно:</span>
+                <span class="info-value">
+                    {% if equipment.is_active %}
+                        Да
+                    {% else %}
+                        Нет
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="info-row info-row-textarea">
+                <span class="info-label">Комментарий:</span>
+                <span class="info-value">{{ equipment.comment|default:"—" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Метки</h3>
+
+        {% for tag in tags %}
+            <div class="tag-card">
+                <div class="info-list">
+                    <div class="info-row">
+                        <span class="info-label">Тип метки:</span>
+                        <span class="info-value">{{ tag.tag_type }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Код:</span>
+                        <span class="info-value">{{ tag.code }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">UID:</span>
+                        <span class="info-value">{{ tag.uid|default:"—" }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Формат:</span>
+                        <span class="info-value">{{ tag.payload_format|default:"—" }}</span>
+                    </div>
+
+                    <div class="info-row info-row-textarea">
+                        <span class="info-label">Payload:</span>
+                        <span class="info-value">{{ tag.payload|default:"—" }}</span>
+                    </div>
+                </div>
+
+                {% if tag.qr_image %}
+                    <div class="qr-preview">
+                        <img src="{{ tag.qr_image.url }}" alt="QR код" class="qr-image">
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if not forloop.last %}
+                <hr class="section-divider">
+            {% endif %}
+        {% empty %}
+            <p class="empty-state">Нет активных меток</p>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="card">
+        <div class="page-header">
+            <h3>Реквизиты</h3>
+            {% if can_edit_equipment %}
+                <a href="{% url 'equipment_requisite_create' equipment.pk %}" class="btn btn-secondary">Добавить реквизит</a>
+            {% endif %}
+        </div>
+
+        {% for requisite in requisites %}
+            <div class="history-item">
+                <p>
+                    <strong>{{ requisite.get_requisite_type_display }}</strong>
+                    {% if requisite.name %} · {{ requisite.name }}{% endif %}
+                </p>
+                <p>{{ requisite.value }}</p>
+                {% if requisite.comment %}
+                    <p class="muted">{{ requisite.comment }}</p>
+                {% endif %}
+                {% if can_edit_equipment %}
+                    <form method="post" action="{% url 'equipment_requisite_archive' equipment.pk requisite.pk %}" class="inline-form">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-secondary">Архивировать</button>
+                    </form>
+                {% endif %}
+            </div>
+
+            {% if not forloop.last %}
+                <hr class="section-divider">
+            {% endif %}
+        {% empty %}
+            <p class="empty-state">Реквизиты не добавлены</p>
+        {% endfor %}
+    </div>
+
+    <div class="card">
+        <div class="page-header">
+            <h3>Файлы</h3>
+            {% if can_edit_equipment %}
+                <a href="{% url 'equipment_file_create' equipment.pk %}" class="btn btn-secondary">Добавить файл</a>
+            {% endif %}
+        </div>
+
+        {% for equipment_file in files %}
+            <div class="history-item">
+                <p>
+                    <a href="{{ equipment_file.file.url }}">{{ equipment_file.title }}</a>
+                </p>
+                {% if equipment_file.comment %}
+                    <p class="muted">{{ equipment_file.comment }}</p>
+                {% endif %}
+                <p class="muted">
+                    {{ equipment_file.uploaded_at }}
+                    {% if equipment_file.uploaded_by %} · {{ equipment_file.uploaded_by }}{% endif %}
+                </p>
+                {% if can_edit_equipment %}
+                    <form method="post" action="{% url 'equipment_file_archive' equipment.pk equipment_file.pk %}" class="inline-form">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-secondary">Архивировать</button>
+                    </form>
+                {% endif %}
+            </div>
+
+            {% if not forloop.last %}
+                <hr class="section-divider">
+            {% endif %}
+        {% empty %}
+            <p class="empty-state">Файлы не добавлены</p>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="page-header">
+        <h3>Заметки</h3>
+    </div>
+
+    {% if can_edit_equipment %}
+        <form method="post" action="{% url 'equipment_note_create' equipment.pk %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="{{ note_form.text.id_for_label }}">{{ note_form.text.label }}</label>
+                {{ note_form.text }}
+                {% if note_form.text.errors %}
+                    <div class="form-error">{{ note_form.text.errors }}</div>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn btn-secondary">Добавить заметку</button>
+        </form>
+        <hr class="section-divider">
+    {% endif %}
+
+    {% for note in notes %}
+        <div class="history-item">
+            <p>{{ note.text }}</p>
+            <p class="muted">
+                {{ note.created_at }}
+                {% if note.created_by %} · {{ note.created_by }}{% endif %}
+            </p>
+        </div>
+
+        {% if not forloop.last %}
+            <hr class="section-divider">
+        {% endif %}
+    {% empty %}
+        <p class="empty-state">Заметки не добавлены</p>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <div class="page-header">
+        <h3>Фото</h3>
+        {% if can_edit_equipment %}
+            <a href="{% url 'equipment_photo_create' equipment.pk %}" class="btn btn-secondary">Добавить фото</a>
+        {% endif %}
+    </div>
+
+    {% if photos %}
+        <div class="photo-grid">
+            {% for photo in photos %}
+                <div class="photo-card">
+                    <a href="{{ photo.image.url }}">
+                        <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:equipment.name }}" class="equipment-photo">
+                    </a>
+                    <div class="photo-meta">
+                        <p>
+                            {{ photo.caption|default:"Без подписи" }}
+                            {% if photo.is_primary %}<span class="badge">Основное</span>{% endif %}
+                        </p>
+                        <p class="muted">
+                            {{ photo.uploaded_at }}
+                            {% if photo.uploaded_by %} · {{ photo.uploaded_by }}{% endif %}
+                        </p>
+                        {% if can_edit_equipment %}
+                            <div class="table-actions">
+                                {% if not photo.is_primary %}
+                                    <form method="post" action="{% url 'equipment_photo_make_primary' equipment.pk photo.pk %}" class="inline-form">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-secondary">Сделать основным</button>
+                                    </form>
+                                {% endif %}
+                                <form method="post" action="{% url 'equipment_photo_archive' equipment.pk photo.pk %}" class="inline-form">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-secondary">Архивировать</button>
+                                </form>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="empty-state">Фото не добавлены</p>
+    {% endif %}
+</div>
+
+<div class="detail-grid">
+    <div class="card">
+        <h3>Последние перемещения</h3>
+
+        {% for movement in movements %}
+            <details class="history-item movement-history-item" {% if forloop.first %}open{% endif %}>
+                <summary class="history-summary">
+                    <span>{{ movement.moved_at }}</span>
+                    <span>{{ movement.from_location|default:"—" }} → {{ movement.to_location|default:"—" }}</span>
+                </summary>
+
+                <p>
+                    <strong>Локация:</strong>
+                    {{ movement.from_location|default:"—" }}
+                    →
+                    {{ movement.to_location|default:"—" }}
+                </p>
+
+                {% if movement.from_cost_center or movement.to_cost_center %}
+                    <p>
+                        <strong>ЦФО:</strong>
+                        {{ movement.from_cost_center|default:"—" }}
+                        →
+                        {{ movement.to_cost_center|default:"—" }}
+                    </p>
+                {% endif %}
+
+                {% if movement.from_warehouse or movement.to_warehouse %}
+                    <p>
+                        <strong>Склад:</strong>
+                        {{ movement.from_warehouse|default:"—" }}
+                        →
+                        {{ movement.to_warehouse|default:"—" }}
+                    </p>
+                {% endif %}
+
+                <p class="muted">
+                    {{ movement.moved_by|default:"—" }}
+                </p>
+
+                {% if movement.comment %}
+                    <p class="history-comment">{{ movement.comment }}</p>
+                {% endif %}
+            </details>
+
+            {% if not forloop.last %}
+                <hr class="section-divider">
+            {% endif %}
+        {% empty %}
+            <p class="empty-state">Нет данных по перемещениям</p>
+        {% endfor %}
+    </div>
+
+    <div class="card">
+        <div class="page-header">
+            <h3>Ремонты</h3>
+            <a href="{% url 'repair_request_list' %}" class="btn btn-secondary">Все заявки</a>
+        </div>
+
+        {% for repair in repairs %}
+            <div class="history-item">
+                <p class="history-date">
+                    {{ repair.created_at }}
+                    · {{ repair.get_status_display }}
+                    · {{ repair.get_priority_display }}
+                </p>
+                <p><strong>Проблема:</strong> {{ repair.description }}</p>
+                <p class="muted">
+                    Техник: {{ repair.assigned_to|default:"—" }}
+                    · Принял: {{ repair.accepted_by|default:"—" }}
+                    · Дата ремонта: {{ repair.repair_date|default:"—" }}
+                </p>
+                {% if repair.resolution %}
+                    <p><strong>Что сделано:</strong> {{ repair.resolution }}</p>
+                {% endif %}
+                <p class="muted">
+                    Стоимость: {{ repair.cost|default:"—" }}
+                    {% if repair.contractor %} · {{ repair.contractor }}{% endif %}
+                </p>
+                {% if can_manage_repairs %}
+                    <div class="table-actions">
+                        <a href="{% url 'equipment_repair_update' repair.pk %}" class="btn btn-secondary">Обновить статус</a>
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if not forloop.last %}
+                <hr class="section-divider">
+            {% endif %}
+        {% empty %}
+            <p class="empty-state">Нет записей по ремонтам</p>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="page-header">
+        <h3>Инвентаризации</h3>
+        {% if can_edit_equipment %}
+            <a href="{% url 'equipment_inventory_create' equipment.pk %}" class="btn btn-secondary">Добавить инвентаризацию</a>
+        {% endif %}
+    </div>
+
+    {% for inventory in inventory_checks %}
+        <div class="history-item">
+            <p class="history-date">{{ inventory.inventory_date }}</p>
+            <p>
+                {{ inventory.get_condition_status_display }}
+                {% if inventory.estimated_value %} · Оценка: {{ inventory.estimated_value }}{% endif %}
+            </p>
+            <p class="muted">
+                {{ inventory.location|default:"—" }}
+                {% if inventory.warehouse %} · {{ inventory.warehouse }}{% endif %}
+                {% if inventory.checked_by %} · {{ inventory.checked_by }}{% endif %}
+            </p>
+            {% if inventory.comment %}
+                <p>{{ inventory.comment }}</p>
+            {% endif %}
+        </div>
+
+        {% if not forloop.last %}
+            <hr class="section-divider">
+        {% endif %}
+    {% empty %}
+        <p class="empty-state">Нет записей по инвентаризациям</p>
+    {% endfor %}
+</div>
+{% endblock %}

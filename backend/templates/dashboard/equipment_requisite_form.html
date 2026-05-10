@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Добавление реквизита{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="section-title">Добавление реквизита</h1>
+    <p class="muted">{{ equipment.name }}</p>
+</div>
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="{{ form.requisite_type.id_for_label }}">{{ form.requisite_type.label }}</label>
+                {{ form.requisite_type }}
+                {% if form.requisite_type.errors %}
+                    <div class="form-error">{{ form.requisite_type.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <div class="form-error">{{ form.name.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group form-group-wide">
+                <label for="{{ form.value.id_for_label }}">{{ form.value.label }}</label>
+                {{ form.value }}
+                {% if form.value.errors %}
+                    <div class="form-error">{{ form.value.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.comment.id_for_label }}">{{ form.comment.label }}</label>
+            {{ form.comment }}
+            {% if form.comment.errors %}
+                <div class="form-error">{{ form.comment.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="actions-row">
+            <button type="submit" class="btn">Сохранить</button>
+            <a href="{% url 'equipment_detail' equipment.pk %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

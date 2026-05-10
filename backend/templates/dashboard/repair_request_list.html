@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Ремонты{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Ремонты</h1>
+        <p class="muted">Заявки на ремонт оборудования и их текущие статусы.</p>
+    </div>
+</div>
+
+<div class="card">
+    <form method="get" class="filters-form">
+        <div class="form-group">
+            <label for="q">Поиск</label>
+            <input type="text" id="q" name="q" value="{{ query }}" class="form-control" placeholder="Оборудование, серийный номер, проблема">
+        </div>
+        <div class="form-group">
+            <label for="status">Статус</label>
+            <select id="status" name="status" class="form-control">
+                <option value="">Все статусы</option>
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn">Применить</button>
+            <a href="{% url 'repair_request_list' %}" class="btn btn-secondary">Сбросить</a>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Оборудование</th>
+                <th>Статус</th>
+                <th>Приоритет</th>
+                <th>Проблема</th>
+                <th>Техник</th>
+                <th>Создана</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for repair in repairs %}
+                <tr>
+                    <td>
+                        <a href="{% url 'equipment_detail' repair.equipment.pk %}">{{ repair.equipment.name }}</a>
+                        <div class="muted">{{ repair.equipment.serial_number|default:"Без серийного номера" }}</div>
+                    </td>
+                    <td>{{ repair.get_status_display }}</td>
+                    <td>{{ repair.get_priority_display }}</td>
+                    <td>{{ repair.description|truncatechars:80 }}</td>
+                    <td>{{ repair.assigned_to|default:"—" }}</td>
+                    <td>{{ repair.created_at }}</td>
+                    <td class="table-actions">
+                        {% if can_manage_repairs %}
+                            <a href="{% url 'equipment_repair_update' repair.pk %}" class="btn btn-secondary">Открыть</a>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" class="empty-state">Заявок на ремонт нет</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if is_paginated %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if filter_query %}&{{ filter_query }}{% endif %}" class="btn btn-secondary">Назад</a>
+            {% endif %}
+            <span class="muted">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if filter_query %}&{{ filter_query }}{% endif %}" class="btn btn-secondary">Вперед</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

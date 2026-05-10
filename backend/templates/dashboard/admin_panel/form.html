@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ form_title }} | {{ title }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="page-header">
+        <div>
+            <h1 class="section-title">{{ form_title }}</h1>
+            <p class="muted">{{ title }}</p>
+        </div>
+        <div class="actions-row">
+            <a href="{% url 'admin_section_list' section %}" class="btn btn-secondary">Назад к списку</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-error">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        {% if section == 'users' %}
+            <div class="tabs">
+                <input type="radio" id="tab-profile" name="admin-form-tab" checked>
+                <label for="tab-profile">Профиль</label>
+                <input type="radio" id="tab-access" name="admin-form-tab">
+                <label for="tab-access">Права доступа</label>
+
+                <div class="tab-panel tab-profile-panel">
+                    <div class="form-grid">
+                        {% for field in form %}
+                            {% if field.name != 'can_view_equipment' and field.name != 'can_edit_equipment' and field.name != 'can_view_movements' and field.name != 'can_view_accesses' and field.name != 'can_edit_accesses' and field.name != 'can_reveal_access_secrets' and field.name != 'can_export_data' and field.name != 'can_view_admin_panel' and field.name != 'can_manage_directories' and field.name != 'can_manage_users' and field.name != 'can_view_audit_log' %}
+                                <div class="form-group {% if field.field.widget.input_type == 'checkbox' %}checkbox-group{% endif %}">
+                                    {% if field.field.widget.input_type == 'checkbox' %}
+                                        <label for="{{ field.id_for_label }}">{{ field }} {{ field.label }}</label>
+                                    {% else %}
+                                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                        {{ field }}
+                                    {% endif %}
+                                    {% if field.help_text %}
+                                        <p class="field-help">{{ field.help_text }}</p>
+                                    {% endif %}
+                                    {% if field.errors %}
+                                        <div class="form-error">{{ field.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="tab-panel tab-access-panel">
+                    <div class="permission-grid">
+                        <div class="permission-group">
+                            <h3>Основные разделы</h3>
+                            {% for field in form %}
+                                {% if field.name == 'can_view_equipment' or field.name == 'can_edit_equipment' or field.name == 'can_view_movements' or field.name == 'can_export_data' %}
+                                    <label class="permission-check" for="{{ field.id_for_label }}">{{ field }} <span>{{ field.label }}</span></label>
+                                    {% if field.errors %}<div class="form-error">{{ field.errors }}</div>{% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <div class="permission-group">
+                            <h3>Доступы и секреты</h3>
+                            {% for field in form %}
+                                {% if field.name == 'can_view_accesses' or field.name == 'can_edit_accesses' or field.name == 'can_reveal_access_secrets' %}
+                                    <label class="permission-check" for="{{ field.id_for_label }}">{{ field }} <span>{{ field.label }}</span></label>
+                                    {% if field.errors %}<div class="form-error">{{ field.errors }}</div>{% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <div class="permission-group">
+                            <h3>Администрирование</h3>
+                            {% for field in form %}
+                                {% if field.name == 'can_view_admin_panel' or field.name == 'can_manage_directories' or field.name == 'can_manage_users' or field.name == 'can_view_audit_log' %}
+                                    <label class="permission-check" for="{{ field.id_for_label }}">{{ field }} <span>{{ field.label }}</span></label>
+                                    {% if field.errors %}<div class="form-error">{{ field.errors }}</div>{% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="form-grid">
+                {% for field in form %}
+                    <div class="form-group {% if field.field.widget.input_type == 'checkbox' %}checkbox-group{% endif %}">
+                        {% if field.field.widget.input_type == 'checkbox' %}
+                            <label for="{{ field.id_for_label }}">{{ field }} {{ field.label }}</label>
+                        {% else %}
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                        {% endif %}
+                        {% if field.help_text %}
+                            <p class="field-help">{{ field.help_text }}</p>
+                        {% endif %}
+                        {% if field.errors %}
+                            <div class="form-error">{{ field.errors }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="actions-row">
+            <button type="submit" class="btn">Сохранить</button>
+            <a href="{% url 'admin_section_list' section %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'js/equipment_form.js' %}"></script>
+{% endblock %}

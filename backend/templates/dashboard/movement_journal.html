@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Журнал перемещений{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="page-header">
+        <div>
+            <h1 class="section-title">Журнал перемещений</h1>
+            <p class="muted">История перемещений оборудования по доступным вам объектам.</p>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <form method="get" class="filter-form">
+        <div class="filter-grid">
+            <div class="form-group">
+                <label for="q">Поиск</label>
+                <input type="text" name="q" id="q" value="{{ request.GET.q }}" placeholder="Оборудование, серийный номер, склад или комментарий">
+            </div>
+
+            <div class="form-group">
+                <label for="legal_entity">Юридическое лицо</label>
+                <select name="legal_entity" id="legal_entity">
+                    <option value="">Все</option>
+                    {% for item in legal_entities %}
+                        <option value="{{ item.id }}" {% if request.GET.legal_entity == item.id|stringformat:"s" %}selected{% endif %}>
+                            {{ item.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="location">Локация</label>
+                <select name="location" id="location">
+                    <option value="">Все</option>
+                    {% for item in locations %}
+                        <option value="{{ item.id }}" {% if request.GET.location == item.id|stringformat:"s" %}selected{% endif %}>
+                            {{ item.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="actions-row">
+            <button type="submit" class="btn">Применить</button>
+            <a href="{% url 'movement_journal' %}" class="btn btn-secondary">Сбросить</a>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    {% if movements %}
+        <div class="table-wrapper">
+            <table class="equipment-table">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Оборудование</th>
+                        <th>Юрлицо</th>
+                        <th>Локация</th>
+                        <th>ЦФО</th>
+                        <th>Склад</th>
+                        <th>Кто переместил</th>
+                        <th>Комментарий</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for movement in movements %}
+                        <tr>
+                            <td>{{ movement.moved_at }}</td>
+                            <td>
+                                <a href="{% url 'equipment_detail' movement.equipment.pk %}" class="table-link">
+                                    {{ movement.equipment.name }}
+                                </a>
+                                {% if movement.equipment.serial_number %}
+                                    <div class="muted">{{ movement.equipment.serial_number }}</div>
+                                {% endif %}
+                            </td>
+                            <td>{{ movement.legal_entity|default:"-" }}</td>
+                            <td>{{ movement.from_location|default:"-" }} -> {{ movement.to_location|default:"-" }}</td>
+                            <td>{{ movement.from_cost_center|default:"-" }} -> {{ movement.to_cost_center|default:"-" }}</td>
+                            <td>{{ movement.from_warehouse|default:"-" }} -> {{ movement.to_warehouse|default:"-" }}</td>
+                            <td>{{ movement.moved_by|default:"-" }}</td>
+                            <td>{{ movement.comment|default:"-" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_paginated %}
+            <div class="pagination-block">
+                <div class="pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1{% if filter_querystring %}&{{ filter_querystring }}{% endif %}">Первая</a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% if filter_querystring %}&{{ filter_querystring }}{% endif %}">Назад</a>
+                    {% endif %}
+
+                    <span class="pagination-current">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if filter_querystring %}&{{ filter_querystring }}{% endif %}">Вперед</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% if filter_querystring %}&{{ filter_querystring }}{% endif %}">Последняя</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="empty-state-block">
+            <p class="empty-state">Перемещений пока нет</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

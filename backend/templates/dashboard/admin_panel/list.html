@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="page-header">
+        <div>
+            <h1 class="section-title">{{ title }}</h1>
+            <p class="muted">Создание, редактирование и удаление записей.</p>
+        </div>
+        <div class="actions-row">
+            <a href="{% url 'admin_panel_home' %}" class="btn btn-secondary">Все разделы</a>
+            {% if can_create %}
+                <a href="{% url 'admin_section_create' section %}" class="btn">Добавить</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <form method="get" class="filter-form">
+        <div class="filter-grid">
+            <div class="form-group">
+                <label for="q">Поиск</label>
+                <input type="text" name="q" id="q" value="{{ query }}" placeholder="Введите текст">
+            </div>
+        </div>
+        <div class="actions-row">
+            <button type="submit" class="btn">Найти</button>
+            <a href="{% url 'admin_section_list' section %}" class="btn btn-secondary">Сбросить</a>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    {% if rows %}
+        <div class="table-wrapper">
+            <table class="equipment-table">
+                <thead>
+                    <tr>
+                        {% for column in columns %}
+                            <th>{{ column }}</th>
+                        {% endfor %}
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                        <tr>
+                            {% for value in row.values %}
+                                <td>{{ value }}</td>
+                            {% endfor %}
+                            <td>
+                                <div class="table-actions">
+                                    <a href="{% url 'admin_section_update' section row.object.pk %}" class="btn btn-small">Изменить</a>
+                                    {% if can_delete %}
+                                        <a href="{% url 'admin_section_delete' section row.object.pk %}" class="btn btn-small btn-secondary">Удалить</a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_paginated %}
+            <div class="pagination-block">
+                <div class="pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Назад</a>
+                    {% endif %}
+                    <span class="pagination-current">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Вперед</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <p class="empty-state">Записей пока нет.</p>
+    {% endif %}
+</div>
+{% endblock %}

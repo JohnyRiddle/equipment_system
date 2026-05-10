@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ access.title }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="page-header">
+        <div>
+            <h1 class="section-title">{{ access.title }}</h1>
+            <p class="muted">Карточка доступа. Секреты хранятся отдельно и раскрываются только защищенным действием.</p>
+        </div>
+
+        {% if can_edit_access %}
+            <div class="actions-column">
+                <a href="{% url 'equipment_access_update' access.pk %}" class="btn btn-secondary">Редактировать</a>
+                {% if access.is_active %}
+                    <form method="post" action="{% url 'equipment_access_archive' access.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-secondary">Архивировать</button>
+                    </form>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="card">
+        <h3>Реквизиты</h3>
+        <div class="info-list">
+            <div class="info-row"><span class="info-label">Тип</span><span class="info-value">{{ access.access_type|default:"-" }}</span></div>
+            <div class="info-row"><span class="info-label">Host</span><span class="info-value">{{ access.host|default:"-" }}</span></div>
+            <div class="info-row"><span class="info-label">Port</span><span class="info-value">{{ access.port|default:"-" }}</span></div>
+            <div class="info-row"><span class="info-label">URL</span><span class="info-value">{{ access.url|default:"-" }}</span></div>
+            <div class="info-row"><span class="info-label">Логин</span><span class="info-value">{{ access.username|default:"-" }}</span></div>
+            <div class="info-row"><span class="info-label">Истекает</span><span class="info-value">{{ access.expires_at|default:"-" }}</span></div>
+            <div class="info-row"><span class="info-label">Активен</span><span class="info-value">{% if access.is_active %}Да{% else %}Нет{% endif %}</span></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Привязка</h3>
+        <div class="info-list">
+            <div class="info-row">
+                <span class="info-label">Оборудование</span>
+                <span class="info-value">
+                    {% if access.equipment %}
+                        <a href="{% url 'equipment_detail' access.equipment.pk %}">{{ access.equipment.name }}</a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </span>
+            </div>
+            <div class="info-row"><span class="info-label">Юрлицо</span><span class="info-value">{{ access.legal_entity|default:"-" }}</span></div>
+            <div class="info-row"><span class="info-label">Локация</span><span class="info-value">{{ access.location|default:"-" }}</span></div>
+            <div class="info-row"><span class="info-label">ЦФО</span><span class="info-value">{{ access.cost_center|default:"-" }}</span></div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Описание</h3>
+    {% if access.description %}
+        <p class="history-comment">{{ access.description }}</p>
+    {% else %}
+        <p class="empty-state">Описание не заполнено</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="page-header">
+        <div>
+            <h3>Секреты</h3>
+            <p class="muted">Значения скрыты. В таблице видны только тип, метка и служебные даты.</p>
+        </div>
+        {% if can_edit_access %}
+            <a href="{% url 'access_secret_create' access.pk %}" class="btn btn-secondary">Добавить секрет</a>
+        {% endif %}
+    </div>
+
+    {% if revealed_secret %}
+        <div class="alert alert-success">
+            <strong>{{ revealed_secret.label }}:</strong>
+            <span class="secret-value">{{ revealed_secret.value }}</span>
+        </div>
+    {% endif %}
+
+    {% if secrets %}
+        <div class="table-wrapper">
+            <table class="equipment-table">
+                <thead>
+                    <tr>
+                        <th>Тип</th>
+                        <th>Метка</th>
+                        <th>Создан</th>
+                        <th>Ротация</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for secret in secrets %}
+                        <tr>
+                            <td>{{ secret.get_secret_type_display }}</td>
+                            <td>{{ secret.label }}</td>
+                            <td>{{ secret.created_at }}</td>
+                            <td>{{ secret.rotated_at|default:"-" }}</td>
+                            <td>
+                                <div class="table-actions">
+                                    {% if secret.can_reveal %}
+                                        <form method="post" action="{% url 'access_secret_reveal' access.pk secret.pk %}" class="inline-form">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-small btn-secondary">Показать</button>
+                                        </form>
+                                    {% else %}
+                                        <span class="muted">Нет права раскрытия</span>
+                                    {% endif %}
+                                    {% if can_edit_access %}
+                                        <a href="{% url 'access_secret_rotate' access.pk secret.pk %}" class="btn btn-small btn-secondary">Ротировать</a>
+                                        <form method="post" action="{% url 'access_secret_archive' access.pk secret.pk %}" class="inline-form">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-small btn-secondary">Архив</button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="empty-state">Секреты пока не добавлены</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="page-header">
+        <div>
+            <h3>Персональные гранты</h3>
+            <p class="muted">Точечные права на эту карточку доступа без расширения доступа ко всей локации.</p>
+        </div>
+        {% if can_edit_access %}
+            <a href="{% url 'access_grant_create' access.pk %}" class="btn btn-secondary">Выдать доступ</a>
+        {% endif %}
+    </div>
+
+    {% if grants %}
+        <div class="table-wrapper">
+            <table class="equipment-table">
+                <thead>
+                    <tr>
+                        <th>Пользователь</th>
+                        <th>Уровень</th>
+                        <th>Истекает</th>
+                        <th>Выдал</th>
+                        <th>Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for grant in grants %}
+                        <tr>
+                            <td>{{ grant.user }}</td>
+                            <td>{{ grant.get_level_display }}</td>
+                            <td>{{ grant.expires_at|default:"-" }}</td>
+                            <td>{{ grant.granted_by|default:"-" }}</td>
+                            <td>
+                                {% if can_edit_access %}
+                                    <form method="post" action="{% url 'access_grant_archive' access.pk grant.pk %}" class="inline-form">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-small btn-secondary">Архив</button>
+                                    </form>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="empty-state">Персональные гранты пока не выданы</p>
+    {% endif %}
+</div>
+
+<div class="detail-grid">
+    <div class="card">
+        <h3>Последние раскрытия</h3>
+        {% if secret_view_logs %}
+            <div class="table-wrapper">
+                <table class="equipment-table">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Секрет</th>
+                            <th>Пользователь</th>
+                            <th>Результат</th>
+                            <th>IP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in secret_view_logs %}
+                            <tr>
+                                <td>{{ log.viewed_at }}</td>
+                                <td>{{ log.secret.label }}</td>
+                                <td>{{ log.user|default:"-" }}</td>
+                                <td>{{ log.result }}</td>
+                                <td>{{ log.ip_address|default:"-" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="empty-state">Раскрытий пока не было</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3>История изменений</h3>
+        {% if change_logs %}
+            <div class="table-wrapper">
+                <table class="equipment-table">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Действие</th>
+                            <th>Секрет</th>
+                            <th>Пользователь</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in change_logs %}
+                            <tr>
+                                <td>{{ log.created_at }}</td>
+                                <td>{{ log.get_action_display }}</td>
+                                <td>{{ log.secret.label|default:"-" }}</td>
+                                <td>{{ log.user|default:"-" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="empty-state">Изменений пока нет</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
