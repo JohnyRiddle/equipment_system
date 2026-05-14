@@ -251,7 +251,7 @@ class EquipmentAccessTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(EquipmentAccess.objects.filter(title='Unauthorized SSH').exists())
-        self.assertContains(response, 'Select a valid choice')
+        self.assertContains(response, 'Выберите корректный вариант')
 
     def test_viewer_cannot_edit_access(self):
         access = EquipmentAccess.objects.create(

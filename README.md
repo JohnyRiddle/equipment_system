@@ -278,6 +278,34 @@ docker compose exec web python manage.py regenerate_qr_codes
 
 Docker-compose поднимает сервис `web` на порту `8000` и базу `db` на PostgreSQL.
 
+## Production Docker
+
+Для серверного запуска используйте отдельный compose-файл:
+
+```powershell
+copy .env.example .env
+```
+
+В `.env` обязательно замените:
+
+- `DJANGO_SECRET_KEY`
+- `POSTGRES_PASSWORD`
+- `ACCESS_SECRET_KEYS`
+- `DJANGO_ALLOWED_HOSTS`
+- `DJANGO_CSRF_TRUSTED_ORIGINS`
+- `QR_EQUIPMENT_BASE_URL`
+
+Запуск:
+
+```powershell
+docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml exec web python manage.py seed_initial_data
+docker compose -f docker-compose.prod.yml exec web python manage.py seed_access_types
+docker compose -f docker-compose.prod.yml exec web python manage.py createsuperuser
+```
+
+Production compose запускает Django через Gunicorn, отдает `/static/` и `/media/` через Nginx и не публикует PostgreSQL наружу. Если HTTPS завершается на внешнем reverse proxy, включите в `.env` `DJANGO_SECURE_SSL_REDIRECT=1` и передавайте `X-Forwarded-Proto=https`. HSTS (`DJANGO_SECURE_HSTS_SECONDS`, include subdomains и preload) включайте только после проверки SSL на домене и поддоменах.
+
 ## Backup и restore
 
 Для backup PostgreSQL и `backend/media` добавлены PowerShell-скрипты:

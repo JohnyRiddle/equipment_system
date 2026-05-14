@@ -978,7 +978,7 @@ class DashboardEquipmentTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(EquipmentMovement.objects.filter(equipment=self.equipment).exists())
         self.assertEqual(self.equipment.location, self.location)
-        self.assertContains(response, 'Select a valid choice')
+        self.assertContains(response, 'Выберите корректный вариант')
 
     def test_location_editor_cannot_create_equipment_in_uneditable_location(self):
         editor_user = User.objects.create_user(
@@ -1017,7 +1017,7 @@ class DashboardEquipmentTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Equipment.objects.filter(serial_number='SER-004').exists())
-        self.assertContains(response, 'Select a valid choice')
+        self.assertContains(response, 'Выберите корректный вариант')
 
     def test_cost_centers_ajax_filters_by_location(self):
         self.client.force_login(self.admin_user)
