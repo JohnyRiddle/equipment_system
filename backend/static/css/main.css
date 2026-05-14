@@ -479,6 +479,11 @@ textarea:focus {
     gap: 16px;
 }
 
+.scope-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+}
+
 .permission-group {
     display: flex;
     flex-direction: column;
@@ -491,7 +496,8 @@ textarea:focus {
 
 .permission-check,
 .checkbox-list label {
-    display: flex;
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
     align-items: center;
     gap: 10px;
     min-height: 36px;
@@ -500,14 +506,26 @@ textarea:focus {
 
 .checkbox-list ul {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 8px 14px;
+    grid-template-columns: 1fr;
+    gap: 8px;
     margin: 0;
     padding: 12px;
     border: 1px solid rgba(17, 24, 39, 0.08);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.56);
     list-style: none;
+}
+
+.checkbox-list li {
+    margin: 0;
+}
+
+.checkbox-list input[type="checkbox"],
+.permission-check input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    padding: 0;
 }
 
 .patch-timeline {
@@ -1079,6 +1097,10 @@ textarea:focus {
     }
 
     .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .scope-grid {
         grid-template-columns: 1fr;
     }
 
