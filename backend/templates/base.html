@@ -13,6 +13,7 @@
         <div class="sidebar-brand">
             <strong class="brand-mark">AYS</strong>
             <span>Equipment System</span>
+            <small class="sidebar-version">Версия {{ APP_VERSION }}</small>
         </div>
         <form method="get" action="{% url 'global_search' %}" class="sidebar-search">
             <input type="search" name="q" value="{{ request.GET.q }}" placeholder="Поиск" aria-label="Глобальный поиск">

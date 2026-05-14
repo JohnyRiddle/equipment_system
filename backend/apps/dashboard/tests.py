@@ -110,6 +110,14 @@ class DashboardEquipmentTests(TestCase):
             access_level='view',
         )
 
+    def test_dashboard_shows_application_version(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(reverse('dashboard_home'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'Версия {settings.APP_VERSION}')
+
     def test_equipment_create_generates_qr_tag(self):
         self.client.force_login(self.admin_user)
 

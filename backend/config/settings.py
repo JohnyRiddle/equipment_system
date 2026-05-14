@@ -17,8 +17,11 @@ from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
 
+from .version import __version__
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+APP_VERSION = os.getenv('APP_VERSION', __version__)
 
 
 def env_bool(name, default=False):
@@ -110,6 +113,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'config.context_processors.app_version',
             ],
         },
     },
