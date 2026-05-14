@@ -28,7 +28,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_HOST: db
       POSTGRES_PORT: "5432"
-      QR_EQUIPMENT_BASE_URL: ${QR_EQUIPMENT_BASE_URL:-https://ays-crm.ru/equipment}
+      QR_EQUIPMENT_BASE_URL: ${QR_EQUIPMENT_BASE_URL:-auto}
     volumes:
       - media_data:/app/media
       - staticfiles_data:/app/staticfiles

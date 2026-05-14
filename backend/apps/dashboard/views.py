@@ -1943,7 +1943,7 @@ def qr_print_pdf_view(request):
 
     equipment_items = list(equipment_queryset[:200])
     for equipment in equipment_items:
-        create_qr_tag_for_equipment(equipment, assigned_by=request.user)
+        create_qr_tag_for_equipment(equipment, assigned_by=request.user, request=request)
 
     response = HttpResponse(
         build_qr_labels_pdf(equipment_items),
@@ -2557,7 +2557,7 @@ def equipment_create_view(request):
                 form.cleaned_data['location'],
             )
             equipment = form.save()
-            create_qr_tag_for_equipment(equipment, assigned_by=request.user)
+            create_qr_tag_for_equipment(equipment, assigned_by=request.user, request=request)
             log_action(request, ActionLog.ACTION_CREATE, equipment, message='Создана карточка оборудования.')
             messages.success(request, 'Оборудование успешно добавлено.')
             return redirect('equipment_detail', pk=equipment.pk)
@@ -2635,7 +2635,7 @@ def equipment_regenerate_qr_view(request, pk):
         pk=pk
     )
     require_equipment_edit_access(request.user, equipment)
-    regenerate_qr_tag_for_equipment(equipment, assigned_by=request.user)
+    regenerate_qr_tag_for_equipment(equipment, assigned_by=request.user, request=request)
     log_action(request, ActionLog.ACTION_UPDATE, equipment, message='QR-код оборудования обновлен.')
     messages.success(request, 'QR-код успешно обновлен.')
     return redirect('equipment_detail', pk=equipment.pk)

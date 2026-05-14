@@ -153,7 +153,7 @@ class DashboardEquipmentTests(TestCase):
         tag = EquipmentTag.objects.get(equipment=created_equipment, tag_type='QR', is_active=True)
 
         self.assertRedirects(response, reverse('equipment_detail', kwargs={'pk': created_equipment.pk}))
-        self.assertEqual(tag.payload, f'https://ays-crm.ru/equipment/{created_equipment.id}/')
+        self.assertEqual(tag.payload, f'http://testserver/equipment/{created_equipment.id}/')
         self.assertTrue(tag.qr_image)
         self.assertTrue(
             ActionLog.objects.filter(

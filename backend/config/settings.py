@@ -139,7 +139,7 @@ DATABASES = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-QR_EQUIPMENT_BASE_URL = os.getenv('QR_EQUIPMENT_BASE_URL', 'https://ays-crm.ru/equipment')
+QR_EQUIPMENT_BASE_URL = os.getenv('QR_EQUIPMENT_BASE_URL', '').strip()
 ACCESS_SECRET_KEYS = env_list('ACCESS_SECRET_KEYS')
 if DEBUG and not ACCESS_SECRET_KEYS:
     ACCESS_SECRET_KEYS = [

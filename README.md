@@ -123,7 +123,10 @@ cd backend
 
 ```powershell
 ..\venv\Scripts\python.exe manage.py regenerate_qr_codes --all
+..\venv\Scripts\python.exe manage.py regenerate_qr_codes --base-url https://crm.example.com/equipment
 ```
+
+По умолчанию новые QR-ссылки, созданные из интерфейса, строятся по текущему адресу сайта. Это удобно для локальных стендов и смены домена. Для фоновой регенерации без HTTP-запроса используйте `--base-url` или задайте `QR_EQUIPMENT_BASE_URL` в `.env`.
 
 В интерфейсе также есть ручная регенерация на карточке оборудования для пользователей с правами редактирования.
 
@@ -279,7 +282,7 @@ docker compose exec web python manage.py createsuperuser
 ```powershell
 docker compose exec web python manage.py check
 docker compose exec web python manage.py test
-docker compose exec web python manage.py regenerate_qr_codes
+docker compose exec web python manage.py regenerate_qr_codes --base-url https://crm.example.com/equipment
 ```
 
 Docker-compose поднимает сервис `web` на порту `8000` и базу `db` на PostgreSQL.
@@ -299,7 +302,7 @@ copy .env.example .env
 - `ACCESS_SECRET_KEYS`
 - `DJANGO_ALLOWED_HOSTS`
 - `DJANGO_CSRF_TRUSTED_ORIGINS`
-- `QR_EQUIPMENT_BASE_URL`
+- `QR_EQUIPMENT_BASE_URL` при необходимости. Если оставить `auto`, QR-ссылки из UI строятся по текущему host; для фоновой команды можно передать `--base-url`.
 - `APP_VERSION`
 
 Запуск:
@@ -357,7 +360,7 @@ PostgreSQL недоступен:
 QR-код не отображается:
 
 - проверьте наличие файла в `backend/media/`;
-- выполните `regenerate_qr_codes`;
+- выполните `regenerate_qr_codes --base-url https://your-domain/equipment`;
 - убедитесь, что карточка оборудования имеет сохраненный QR image field.
 
 Ошибка 403 или кнопки редактирования скрыты:
