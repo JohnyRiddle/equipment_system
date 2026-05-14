@@ -1,4 +1,4 @@
-import uuid
+﻿import uuid
 from django.db import models
 
 
@@ -45,9 +45,9 @@ class CostCenter(models.Model):
 
 class UserLegalEntityAccess(models.Model):
     ACCESS_LEVEL_CHOICES = [
-        ('view', 'View'),
-        ('edit', 'Edit'),
-        ('admin', 'Admin'),
+        ('view', 'Просмотр'),
+        ('edit', 'Редактирование'),
+        ('admin', 'Администрирование'),
     ]
 
     user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='legal_entity_accesses')
@@ -64,9 +64,9 @@ class UserLegalEntityAccess(models.Model):
 
 class UserLocationAccess(models.Model):
     ACCESS_LEVEL_CHOICES = [
-        ('view', 'View'),
-        ('edit', 'Edit'),
-        ('admin', 'Admin'),
+        ('view', 'Просмотр'),
+        ('edit', 'Редактирование'),
+        ('admin', 'Администрирование'),
     ]
 
     user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='location_accesses')

@@ -95,25 +95,25 @@ class EquipmentAccess(models.Model):
         super().clean()
         if self.equipment:
             if self.legal_entity_id and self.equipment.legal_entity_id != self.legal_entity_id:
-                raise ValidationError({'legal_entity': 'Legal entity must match equipment.'})
+                raise ValidationError({'legal_entity': 'Юрлицо должно совпадать с карточкой оборудования.'})
             if self.location_id and self.equipment.location_id != self.location_id:
-                raise ValidationError({'location': 'Location must match equipment.'})
+                raise ValidationError({'location': 'Локация должна совпадать с карточкой оборудования.'})
             if self.cost_center_id and self.equipment.cost_center_id != self.cost_center_id:
-                raise ValidationError({'cost_center': 'Cost center must match equipment.'})
+                raise ValidationError({'cost_center': 'ЦФО должен совпадать с карточкой оборудования.'})
         if self.cost_center_id:
             if self.legal_entity_id and self.cost_center.legal_entity_id != self.legal_entity_id:
-                raise ValidationError({'cost_center': 'Cost center belongs to another legal entity.'})
+                raise ValidationError({'cost_center': 'ЦФО относится к другому юрлицу.'})
             if self.location_id and self.cost_center.location_id != self.location_id:
-                raise ValidationError({'cost_center': 'Cost center belongs to another location.'})
+                raise ValidationError({'cost_center': 'ЦФО относится к другой локации.'})
 
 
 class AccessSecret(models.Model):
     SECRET_TYPE_CHOICES = [
-        ('password', 'Password'),
-        ('private_key', 'Private key'),
-        ('token', 'Token'),
-        ('recovery_code', 'Recovery code'),
-        ('note', 'Secret note'),
+        ('password', 'Пароль'),
+        ('private_key', 'Приватный ключ'),
+        ('token', 'Токен'),
+        ('recovery_code', 'Код восстановления'),
+        ('note', 'Секретная заметка'),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -250,10 +250,10 @@ class AccessChangeLog(models.Model):
 
 class AccessGrant(models.Model):
     LEVEL_CHOICES = [
-        ('view_meta', 'View metadata'),
-        ('view_secret', 'View secrets'),
-        ('edit', 'Edit'),
-        ('admin', 'Admin'),
+        ('view_meta', 'Просмотр карточки'),
+        ('view_secret', 'Просмотр секретов'),
+        ('edit', 'Редактирование'),
+        ('admin', 'Администрирование'),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

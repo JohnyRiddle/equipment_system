@@ -192,6 +192,16 @@ class UserManagementForm(AdminFormMixin, forms.ModelForm):
             'locations',
         ]
         labels = {
+            'username': 'Логин',
+            'first_name': 'Имя',
+            'last_name': 'Фамилия',
+            'email': 'Электронная почта',
+            'phone': 'Телефон',
+            'job_title': 'Должность',
+            'role': 'Роль',
+            'is_active': 'Активен',
+            'is_staff': 'Доступ к Django-админке',
+            'is_global_access': 'Глобальный доступ',
             'can_view_equipment': 'Просмотр оборудования',
             'can_edit_equipment': 'Создание и редактирование оборудования',
             'can_view_movements': 'Просмотр перемещений',

@@ -81,7 +81,7 @@ ADMIN_SECTIONS = {
         'title': 'Пользователи',
         'model': User,
         'form': UserManagementForm,
-        'columns': [('Логин', 'username'), ('Email', 'email'), ('Роль', 'role'), ('Глобальный доступ', 'is_global_access'), ('Активен', 'is_active')],
+        'columns': [('Логин', 'username'), ('Почта', 'email'), ('Роль', 'role'), ('Глобальный доступ', 'is_global_access'), ('Активен', 'is_active')],
         'search': ['username', 'email', 'first_name', 'last_name', 'phone'],
     },
 }

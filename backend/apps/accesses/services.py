@@ -16,7 +16,7 @@ def _get_fernet():
 
 def encrypt_secret(raw_value):
     if raw_value is None or raw_value == '':
-        raise ValueError('Secret value cannot be empty.')
+        raise ValueError('Значение секрета не может быть пустым.')
     return _get_fernet().encrypt(raw_value.encode('utf-8')).decode('utf-8')
 
 
@@ -55,7 +55,7 @@ def log_access_change(access, user, action, secret=None, metadata=None):
 
 def reveal_access_secret(secret, user, request, allowed):
     if not allowed:
-        log_secret_view(secret, user, request, 'denied', 'User has no secret access permission.')
+        log_secret_view(secret, user, request, 'denied', 'У пользователя нет прав на просмотр секрета.')
         raise PermissionDenied
 
     value = decrypt_secret(secret.encrypted_value)

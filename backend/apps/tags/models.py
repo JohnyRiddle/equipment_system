@@ -8,9 +8,9 @@ from django.db import models
 
 class EquipmentTag(models.Model):
     TAG_TYPE_CHOICES = [
-        ('QR', 'QR Code'),
-        ('NFC', 'NFC Tag'),
-        ('BARCODE', 'Barcode'),
+        ('QR', 'QR-код'),
+        ('NFC', 'NFC-метка'),
+        ('BARCODE', 'Штрихкод'),
         ('RFID', 'RFID'),
     ]
 

@@ -5,13 +5,13 @@ from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
     ROLE_CHOICES = [
-        ('system_admin', 'System Admin'),
-        ('company_admin', 'Company Admin'),
-        ('manager', 'Manager'),
-        ('staff', 'Staff'),
-        ('auditor', 'Auditor'),
-        ('technician', 'Technician'),
-        ('service_engineer', 'Service Engineer'),
+        ('system_admin', 'Системный администратор'),
+        ('company_admin', 'Администратор компании'),
+        ('manager', 'Менеджер'),
+        ('staff', 'Сотрудник'),
+        ('auditor', 'Аудитор'),
+        ('technician', 'Техник'),
+        ('service_engineer', 'Сервисный инженер'),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

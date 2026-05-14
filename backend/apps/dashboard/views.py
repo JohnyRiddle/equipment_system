@@ -75,6 +75,17 @@ from .report_exports import build_csv_response, build_pdf_response, build_xlsx_r
 
 PATCH_NOTES = [
     {
+        'version': '0.1.2',
+        'date': '2026-05-15',
+        'title': 'Русский интерфейс без лишнего английского',
+        'summary': 'Формы и основные подписи интерфейса приведены к русскому языку.',
+        'items': [
+            'Роли пользователей и уровни доступа отображаются на русском языке.',
+            'Подписи форм доступа, секретов и выдачи прав заменены на понятные русские названия.',
+            'Английские названия в меню, таблицах и странице входа убраны из пользовательского интерфейса.',
+        ],
+    },
+    {
         'version': '0.1.1',
         'date': '2026-05-15',
         'title': 'Удобная выдача прав пользователям',
@@ -1439,24 +1450,24 @@ def equipment_access_export_csv_view(request):
     writer = csv.writer(response)
     writer.writerow([
         'ID',
-        'Title',
-        'Type',
-        'Equipment',
-        'Legal entity',
-        'Location',
-        'Cost center',
-        'Host',
-        'Port',
+        'Название',
+        'Тип',
+        'Оборудование',
+        'Юридическое лицо',
+        'Локация',
+        'ЦФО',
+        'Хост',
+        'Порт',
         'URL',
-        'Username',
-        'Has active secrets',
-        'Active grants',
-        'Expires at',
-        'Active',
-        'Created by',
-        'Updated by',
-        'Created at',
-        'Updated at',
+        'Логин',
+        'Есть активные секреты',
+        'Активные персональные права',
+        'Истекает',
+        'Активен',
+        'Создал',
+        'Обновил',
+        'Создано',
+        'Обновлено',
     ])
 
     for access in access_queryset.prefetch_related('secrets', 'grants'):

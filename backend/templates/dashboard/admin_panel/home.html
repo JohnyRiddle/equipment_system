@@ -15,7 +15,7 @@
 <div class="admin-grid">
     <a href="{% url 'audit_log' %}" class="admin-card">
         <span class="admin-card-title">Журнал действий</span>
-        <span class="admin-card-count">Audit</span>
+        <span class="admin-card-count">Аудит</span>
     </a>
     {% for card in cards %}
         <a href="{% url 'admin_section_list' card.key %}" class="admin-card">

@@ -45,8 +45,8 @@ class EquipmentAccessForm(forms.ModelForm):
             'cost_center': 'ЦФО',
             'access_type': 'Тип доступа',
             'title': 'Название',
-            'host': 'Host',
-            'port': 'Port',
+            'host': 'Хост',
+            'port': 'Порт',
             'url': 'URL',
             'username': 'Логин',
             'description': 'Описание',
@@ -99,7 +99,7 @@ class EquipmentAccessForm(forms.ModelForm):
 
 class AccessSecretForm(forms.ModelForm):
     raw_value = forms.CharField(
-        label='Secret value',
+        label='Значение секрета',
         widget=forms.Textarea(attrs={'rows': 4}),
         strip=False,
     )
@@ -113,9 +113,9 @@ class AccessSecretForm(forms.ModelForm):
             'is_active',
         ]
         labels = {
-            'secret_type': 'Secret type',
-            'label': 'Label',
-            'is_active': 'Active',
+            'secret_type': 'Тип секрета',
+            'label': 'Подпись',
+            'is_active': 'Активен',
         }
 
     def __init__(self, *args, **kwargs):
@@ -138,10 +138,10 @@ class AccessGrantForm(forms.ModelForm):
             'expires_at': forms.DateInput(attrs={'type': 'date'}),
         }
         labels = {
-            'user': 'User',
-            'level': 'Level',
-            'expires_at': 'Expires at',
-            'is_active': 'Active',
+            'user': 'Пользователь',
+            'level': 'Уровень',
+            'expires_at': 'Истекает',
+            'is_active': 'Активен',
         }
 
     def __init__(self, *args, **kwargs):

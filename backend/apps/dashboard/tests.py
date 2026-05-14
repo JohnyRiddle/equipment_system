@@ -842,7 +842,7 @@ class DashboardEquipmentTests(TestCase):
         self.assertContains(print_response, 'Акт инвентаризации')
         self.assertContains(print_response, 'INV-ACT-001')
         self.assertNotContains(print_response, 'sidebar')
-        self.assertNotContains(print_response, 'Equipment System')
+        self.assertNotContains(print_response, 'Система оборудования')
 
     def test_equipment_can_be_added_to_active_inventory_from_card(self):
         session = InventorySession.objects.create(
@@ -869,14 +869,14 @@ class DashboardEquipmentTests(TestCase):
             actor=self.admin_user,
             action=ActionLog.ACTION_UPDATE,
             object_repr='Test object',
-            message='Audit test',
+            message='Проверка аудита',
         )
         self.client.force_login(self.admin_user)
 
-        response = self.client.get(reverse('audit_log'), {'q': 'Audit'})
+        response = self.client.get(reverse('audit_log'), {'q': 'аудит'})
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Audit test')
+        self.assertContains(response, 'Проверка аудита')
 
     def test_archived_equipment_is_hidden_from_default_list(self):
         self.client.force_login(self.admin_user)
@@ -1188,7 +1188,7 @@ class DashboardEquipmentTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(list_response, 'Администрирование')
-        self.assertContains(list_response, 'Django Admin')
+        self.assertContains(list_response, 'Django-админка')
 
     def test_admin_panel_home_is_available_for_admin(self):
         self.client.force_login(self.admin_user)
