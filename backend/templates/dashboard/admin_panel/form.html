@@ -34,7 +34,7 @@
                 <div class="tab-panel tab-profile-panel">
                     <div class="form-grid">
                         {% for field in form %}
-                            {% if field.name != 'can_view_equipment' and field.name != 'can_edit_equipment' and field.name != 'can_view_movements' and field.name != 'can_view_accesses' and field.name != 'can_edit_accesses' and field.name != 'can_reveal_access_secrets' and field.name != 'can_export_data' and field.name != 'can_view_admin_panel' and field.name != 'can_manage_directories' and field.name != 'can_manage_users' and field.name != 'can_view_audit_log' %}
+                            {% if field.name != 'can_view_equipment' and field.name != 'can_edit_equipment' and field.name != 'can_view_movements' and field.name != 'can_view_accesses' and field.name != 'can_edit_accesses' and field.name != 'can_reveal_access_secrets' and field.name != 'can_export_data' and field.name != 'can_view_admin_panel' and field.name != 'can_manage_directories' and field.name != 'can_manage_users' and field.name != 'can_view_audit_log' and field.name != 'scope_access_level' and field.name != 'legal_entities' and field.name != 'locations' %}
                                 <div class="form-group {% if field.field.widget.input_type == 'checkbox' %}checkbox-group{% endif %}">
                                     {% if field.field.widget.input_type == 'checkbox' %}
                                         <label for="{{ field.id_for_label }}">{{ field }} {{ field.label }}</label>
@@ -84,6 +84,28 @@
                                     {% if field.errors %}<div class="form-error">{{ field.errors }}</div>{% endif %}
                                 {% endif %}
                             {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="permission-group permission-group-wide">
+                        <h3>Область доступа</h3>
+                        <div class="form-group">
+                            <label for="{{ form.scope_access_level.id_for_label }}">{{ form.scope_access_level.label }}</label>
+                            {{ form.scope_access_level }}
+                            {% if form.scope_access_level.help_text %}<p class="field-help">{{ form.scope_access_level.help_text }}</p>{% endif %}
+                            {% if form.scope_access_level.errors %}<div class="form-error">{{ form.scope_access_level.errors }}</div>{% endif %}
+                        </div>
+                        <div class="scope-grid">
+                            <div class="form-group">
+                                <label>{{ form.legal_entities.label }}</label>
+                                <div class="checkbox-list">{{ form.legal_entities }}</div>
+                                {% if form.legal_entities.errors %}<div class="form-error">{{ form.legal_entities.errors }}</div>{% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label>{{ form.locations.label }}</label>
+                                <div class="checkbox-list">{{ form.locations }}</div>
+                                {% if form.locations.errors %}<div class="form-error">{{ form.locations.errors }}</div>{% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>

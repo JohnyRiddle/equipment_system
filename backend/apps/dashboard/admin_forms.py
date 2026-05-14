@@ -142,6 +142,25 @@ class UserManagementForm(AdminFormMixin, forms.ModelForm):
         widget=forms.PasswordInput,
         help_text='Оставьте пустым, чтобы не менять пароль.',
     )
+    scope_access_level = forms.ChoiceField(
+        label='Уровень доступа к области',
+        required=False,
+        choices=UserLegalEntityAccess.ACCESS_LEVEL_CHOICES,
+        initial='view',
+        help_text='Применяется к выбранным юрлицам и локациям.',
+    )
+    legal_entities = forms.ModelMultipleChoiceField(
+        label='Юридические лица',
+        required=False,
+        queryset=LegalEntity.objects.filter(is_active=True).order_by('name'),
+        widget=forms.CheckboxSelectMultiple,
+    )
+    locations = forms.ModelMultipleChoiceField(
+        label='Локации',
+        required=False,
+        queryset=Location.objects.filter(is_active=True).order_by('name'),
+        widget=forms.CheckboxSelectMultiple,
+    )
 
     class Meta:
         model = User
@@ -168,6 +187,9 @@ class UserManagementForm(AdminFormMixin, forms.ModelForm):
             'can_manage_directories',
             'can_manage_users',
             'can_view_audit_log',
+            'scope_access_level',
+            'legal_entities',
+            'locations',
         ]
         labels = {
             'can_view_equipment': 'Просмотр оборудования',
@@ -183,6 +205,27 @@ class UserManagementForm(AdminFormMixin, forms.ModelForm):
             'can_view_audit_log': 'Просмотр журнала действий',
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields['legal_entities'].initial = self.instance.legal_entity_accesses.filter(
+                allow_all_locations=True,
+            ).values_list('legal_entity_id', flat=True)
+            self.fields['locations'].initial = self.instance.location_accesses.values_list('location_id', flat=True)
+            self.fields['scope_access_level'].initial = self._get_initial_scope_access_level()
+
+    def _get_initial_scope_access_level(self):
+        levels = set(
+            self.instance.legal_entity_accesses.filter(
+                allow_all_locations=True,
+            ).values_list('access_level', flat=True)
+        )
+        levels.update(self.instance.location_accesses.values_list('access_level', flat=True))
+        for level in ('admin', 'edit', 'view'):
+            if level in levels:
+                return level
+        return 'view'
+
     def save(self, commit=True):
         user = super().save(commit=False)
         password = self.cleaned_data.get('password')
@@ -191,7 +234,36 @@ class UserManagementForm(AdminFormMixin, forms.ModelForm):
         if commit:
             user.save()
             self.save_m2m()
+            self._sync_scope_access(user)
         return user
+
+    def _sync_scope_access(self, user):
+        access_level = self.cleaned_data.get('scope_access_level') or 'view'
+        legal_entities = list(self.cleaned_data.get('legal_entities') or [])
+        locations = list(self.cleaned_data.get('locations') or [])
+        legal_entity_ids = [item.pk for item in legal_entities]
+        location_ids = [item.pk for item in locations]
+
+        user.legal_entity_accesses.filter(allow_all_locations=True).exclude(
+            legal_entity_id__in=legal_entity_ids,
+        ).delete()
+        user.location_accesses.exclude(location_id__in=location_ids).delete()
+
+        for legal_entity in legal_entities:
+            UserLegalEntityAccess.objects.update_or_create(
+                user=user,
+                legal_entity=legal_entity,
+                defaults={
+                    'access_level': access_level,
+                    'allow_all_locations': True,
+                },
+            )
+        for location in locations:
+            UserLocationAccess.objects.update_or_create(
+                user=user,
+                location=location,
+                defaults={'access_level': access_level},
+            )
 
 
 class UserLegalEntityAccessAdminForm(AdminFormMixin, forms.ModelForm):

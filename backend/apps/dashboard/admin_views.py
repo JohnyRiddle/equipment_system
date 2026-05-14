@@ -10,7 +10,7 @@ from apps.core.models import ActionLog
 from apps.core.services import log_action
 from apps.equipment.models import EquipmentCategory, EquipmentStatus
 from apps.locations.models import Location
-from apps.organizations.models import CostCenter, LegalEntity, UserLegalEntityAccess, UserLocationAccess
+from apps.organizations.models import CostCenter, LegalEntity
 from apps.users.models import User
 from apps.warehouses.models import Warehouse
 
@@ -27,8 +27,6 @@ from .admin_forms import (
     EquipmentStatusAdminForm,
     LegalEntityAdminForm,
     LocationAdminForm,
-    UserLegalEntityAccessAdminForm,
-    UserLocationAccessAdminForm,
     UserManagementForm,
     WarehouseAdminForm,
 )
@@ -85,22 +83,6 @@ ADMIN_SECTIONS = {
         'form': UserManagementForm,
         'columns': [('Логин', 'username'), ('Email', 'email'), ('Роль', 'role'), ('Глобальный доступ', 'is_global_access'), ('Активен', 'is_active')],
         'search': ['username', 'email', 'first_name', 'last_name', 'phone'],
-    },
-    'legal-entity-accesses': {
-        'title': 'Доступы к юрлицам',
-        'model': UserLegalEntityAccess,
-        'form': UserLegalEntityAccessAdminForm,
-        'columns': [('Пользователь', 'user'), ('Юрлицо', 'legal_entity'), ('Уровень', 'access_level'), ('Все локации', 'allow_all_locations')],
-        'search': ['user__username', 'legal_entity__name'],
-        'select_related': ['user', 'legal_entity'],
-    },
-    'location-accesses': {
-        'title': 'Доступы к локациям',
-        'model': UserLocationAccess,
-        'form': UserLocationAccessAdminForm,
-        'columns': [('Пользователь', 'user'), ('Локация', 'location'), ('Уровень', 'access_level')],
-        'search': ['user__username', 'location__name'],
-        'select_related': ['user', 'location'],
     },
 }
 

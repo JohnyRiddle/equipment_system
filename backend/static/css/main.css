@@ -432,6 +432,84 @@ textarea:focus {
     font-weight: 600;
 }
 
+.tabs {
+    display: grid;
+    gap: 16px;
+}
+
+.tabs > input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.tabs > label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 10px 14px;
+    border: 1px solid rgba(31, 35, 40, 0.12);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.tabs > input[type="radio"]:checked + label {
+    border-color: rgba(255, 76, 52, 0.55);
+    background: rgba(255, 247, 242, 0.95);
+    color: var(--text);
+}
+
+.tab-panel {
+    display: none;
+    grid-column: 1 / -1;
+}
+
+#tab-profile:checked ~ .tab-profile-panel,
+#tab-access:checked ~ .tab-access-panel {
+    display: block;
+}
+
+.permission-grid,
+.scope-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+}
+
+.permission-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.permission-group-wide {
+    margin-top: 20px;
+}
+
+.permission-check,
+.checkbox-list label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 36px;
+    font-weight: 600;
+}
+
+.checkbox-list ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px 14px;
+    margin: 0;
+    padding: 12px;
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.56);
+    list-style: none;
+}
+
 .filter-form {
     display: flex;
     flex-direction: column;

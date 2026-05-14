@@ -1359,21 +1359,61 @@ class DashboardEquipmentTests(TestCase):
         self.assertRedirects(response, reverse('admin_section_list', kwargs={'section': 'warehouses'}))
         self.assertTrue(Warehouse.objects.filter(cost_center=self.cost_center, name='Сервис').exists())
 
-    def test_admin_can_create_location_access(self):
+    def test_admin_can_assign_multiple_user_scope_accesses(self):
         self.client.force_login(self.admin_user)
 
         response = self.client.post(
-            reverse('admin_section_create', kwargs={'section': 'location-accesses'}),
+            reverse('admin_section_update', kwargs={
+                'section': 'users',
+                'pk': self.limited_user.pk,
+            }),
             {
-                'user': self.limited_user.pk,
-                'location': self.location.pk,
-                'access_level': 'edit',
+                'username': self.limited_user.username,
+                'first_name': self.limited_user.first_name,
+                'last_name': self.limited_user.last_name,
+                'email': self.limited_user.email,
+                'phone': self.limited_user.phone,
+                'job_title': self.limited_user.job_title,
+                'role': self.limited_user.role,
+                'is_active': 'on',
+                'password': '',
+                'scope_access_level': 'edit',
+                'legal_entities': [self.legal_entity.pk, self.other_legal_entity.pk],
+                'locations': [self.location.pk, self.other_location.pk],
+                'can_view_equipment': 'on',
+                'can_edit_equipment': 'on',
+                'can_view_movements': 'on',
+                'can_view_accesses': 'on',
+                'can_edit_accesses': 'on',
+                'can_reveal_access_secrets': 'on',
+                'can_export_data': 'on',
+                'can_view_admin_panel': 'on',
+                'can_manage_directories': 'on',
+                'can_manage_users': 'on',
+                'can_view_audit_log': 'on',
             },
         )
 
-        self.assertRedirects(response, reverse('admin_section_list', kwargs={'section': 'location-accesses'}))
+        self.assertRedirects(response, reverse('admin_section_list', kwargs={'section': 'users'}))
         self.assertTrue(
             self.limited_user.location_accesses.filter(location=self.location, access_level='edit').exists()
+        )
+        self.assertTrue(
+            self.limited_user.location_accesses.filter(location=self.other_location, access_level='edit').exists()
+        )
+        self.assertTrue(
+            self.limited_user.legal_entity_accesses.filter(
+                legal_entity=self.legal_entity,
+                access_level='edit',
+                allow_all_locations=True,
+            ).exists()
+        )
+        self.assertTrue(
+            self.limited_user.legal_entity_accesses.filter(
+                legal_entity=self.other_legal_entity,
+                access_level='edit',
+                allow_all_locations=True,
+            ).exists()
         )
 
     def test_qr_print_pdf_returns_pdf_for_selected_equipment(self):
