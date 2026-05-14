@@ -3,6 +3,7 @@ from .views import (
     dashboard_home,
     global_search_view,
     notifications_view,
+    patch_notes_view,
     equipment_list_view,
     equipment_detail_view,
     equipment_export_csv_view,
@@ -69,6 +70,7 @@ from .admin_views import (
 
 urlpatterns = [
     path('', dashboard_home, name='dashboard_home'),
+    path('patches/', patch_notes_view, name='patch_notes'),
     path('search/', global_search_view, name='global_search'),
     path('notifications/', notifications_view, name='notifications'),
     path('admin-panel/', admin_panel_home, name='admin_panel_home'),

@@ -1416,6 +1416,56 @@ class DashboardEquipmentTests(TestCase):
             ).exists()
         )
 
+    def test_user_update_keeps_password_when_password_field_is_blank(self):
+        self.client.force_login(self.admin_user)
+        old_password_hash = self.limited_user.password
+
+        response = self.client.post(
+            reverse('admin_section_update', kwargs={
+                'section': 'users',
+                'pk': self.limited_user.pk,
+            }),
+            {
+                'username': self.limited_user.username,
+                'first_name': self.limited_user.first_name,
+                'last_name': self.limited_user.last_name,
+                'email': self.limited_user.email,
+                'phone': self.limited_user.phone,
+                'job_title': self.limited_user.job_title,
+                'role': self.limited_user.role,
+                'is_active': 'on',
+                'password': '',
+                'scope_access_level': 'view',
+                'legal_entities': [self.legal_entity.pk],
+                'locations': [],
+                'can_view_equipment': 'on',
+                'can_edit_equipment': 'on',
+                'can_view_movements': 'on',
+                'can_view_accesses': 'on',
+                'can_edit_accesses': 'on',
+                'can_reveal_access_secrets': 'on',
+                'can_export_data': 'on',
+                'can_view_admin_panel': 'on',
+                'can_manage_directories': 'on',
+                'can_manage_users': 'on',
+                'can_view_audit_log': 'on',
+            },
+        )
+
+        self.assertRedirects(response, reverse('admin_section_list', kwargs={'section': 'users'}))
+        self.limited_user.refresh_from_db()
+        self.assertEqual(self.limited_user.password, old_password_hash)
+        self.assertTrue(self.limited_user.check_password('password'))
+
+    def test_patch_notes_page_shows_current_version(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(reverse('patch_notes'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, settings.APP_VERSION)
+        self.assertContains(response, 'Версии патчей')
+
     def test_qr_print_pdf_returns_pdf_for_selected_equipment(self):
         self.client.force_login(self.admin_user)
 

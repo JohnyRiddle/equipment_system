@@ -510,6 +510,51 @@ textarea:focus {
     list-style: none;
 }
 
+.patch-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.patch-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.patch-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.patch-heading h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(22, 163, 74, 0.12);
+    color: #166534;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.patch-list {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.patch-list li + li {
+    margin-top: 8px;
+}
+
 .filter-form {
     display: flex;
     flex-direction: column;

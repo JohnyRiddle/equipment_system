@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Версии патчей{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="page-header">
+        <div>
+            <h1 class="section-title">Версии патчей</h1>
+            <p class="muted">Текущая версия: {{ current_version }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="patch-timeline">
+    {% for patch in patches %}
+        <section class="card patch-card">
+            <div class="patch-heading">
+                <div>
+                    <h2>{{ patch.version }} · {{ patch.title }}</h2>
+                    <p class="muted">{{ patch.date }}</p>
+                </div>
+                {% if patch.version == current_version %}
+                    <span class="status-badge">Текущая</span>
+                {% endif %}
+            </div>
+            <p>{{ patch.summary }}</p>
+            <ul class="patch-list">
+                {% for item in patch.items %}
+                    <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endfor %}
+</div>
+{% endblock %}

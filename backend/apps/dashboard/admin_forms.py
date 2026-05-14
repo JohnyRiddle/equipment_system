@@ -227,10 +227,19 @@ class UserManagementForm(AdminFormMixin, forms.ModelForm):
         return 'view'
 
     def save(self, commit=True):
+        old_password = None
+        if self.instance and self.instance.pk:
+            old_password = User.objects.only('password').get(pk=self.instance.pk).password
+
         user = super().save(commit=False)
         password = self.cleaned_data.get('password')
         if password:
             user.set_password(password)
+        elif old_password is not None:
+            user.password = old_password
+        else:
+            user.set_unusable_password()
+
         if commit:
             user.save()
             self.save_m2m()

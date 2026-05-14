@@ -1,6 +1,7 @@
 import csv
 from datetime import timedelta
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
@@ -72,6 +73,33 @@ from .pdf import build_qr_labels_pdf
 from .report_exports import build_csv_response, build_pdf_response, build_xlsx_response
 
 
+PATCH_NOTES = [
+    {
+        'version': '0.1.1',
+        'date': '2026-05-15',
+        'title': 'Удобная выдача прав пользователям',
+        'summary': 'Права на юрлица и локации теперь настраиваются прямо в карточке пользователя, без создания отдельных записей для каждой области.',
+        'items': [
+            'Во вкладке "Права доступа" появился выбор нескольких юридических лиц и локаций галочками.',
+            'Один уровень доступа применяется сразу ко всем выбранным юрлицам и локациям.',
+            'Исправлено сохранение пользователя: если поле нового пароля пустое, старый пароль больше не сбрасывается.',
+        ],
+    },
+    {
+        'version': '0.1.0',
+        'date': '2026-05-14',
+        'title': 'Первая серверная сборка',
+        'summary': 'Система подготовлена к запуску на сервере и дальнейшей выкладке небольшими патчами.',
+        'items': [
+            'Добавлен production-запуск через Docker, Gunicorn и Nginx.',
+            'Подготовлены настройки безопасности для серверного режима.',
+            'QR-ссылки стали гибкими: они могут работать с локальным адресом, IP или будущим доменом.',
+            'В интерфейсе отображается версия приложения.',
+        ],
+    },
+]
+
+
 @login_required
 def dashboard_home(request):
     equipment_qs = get_user_equipment_queryset(request.user)
@@ -86,6 +114,18 @@ def dashboard_home(request):
         'notification_total': notifications['total'],
     }
     return render(request, 'dashboard/home.html', context)
+
+
+@login_required
+def patch_notes_view(request):
+    return render(
+        request,
+        'dashboard/patch_notes.html',
+        {
+            'current_version': settings.APP_VERSION,
+            'patches': PATCH_NOTES,
+        },
+    )
 
 
 def _notification_item(title, subtitle, url, severity='warning'):
