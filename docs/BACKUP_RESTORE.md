@@ -76,17 +76,33 @@ nano scripts/backup.env
 chmod 600 scripts/backup.env
 ```
 
-Установка ежедневного запуска через cron:
+Установка автоматического запуска через cron:
 
 ```bash
 chmod +x scripts/production_backup.sh scripts/install_backup_cron.sh
 ./scripts/install_backup_cron.sh
 ```
 
-По умолчанию cron запускает backup каждый день в 03:00. Расписание можно изменить:
+По умолчанию cron запускает backup раз в 10 дней в 03:00:
+
+```cron
+0 3 */10 * *
+```
+
+Ручной запуск backup в любой момент:
 
 ```bash
-BACKUP_CRON_SCHEDULE="0 2 * * *" ./scripts/install_backup_cron.sh
+cd /home/ivan/equipment_system
+set -a
+. scripts/backup.env
+set +a
+./scripts/production_backup.sh
+```
+
+Расписание можно изменить:
+
+```bash
+BACKUP_CRON_SCHEDULE="0 2 */10 * *" ./scripts/install_backup_cron.sh
 ```
 
 Лог автоматического backup:

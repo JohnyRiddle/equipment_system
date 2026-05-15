@@ -345,7 +345,7 @@ docker compose -f docker-compose.prod.yml exec web python manage.py backup_datab
 - Google Drive через `rclone`;
 - отдельный приватный GitHub backup-репозиторий.
 
-Настройки лежат в `scripts/backup.env.example`, запуск выполняет `scripts/production_backup.sh`, расписание cron ставит `scripts/install_backup_cron.sh`. Cloud/GitHub backup работает только с зашифрованным архивом.
+Настройки лежат в `scripts/backup.env.example`, ручной запуск выполняет `scripts/production_backup.sh`, расписание cron ставит `scripts/install_backup_cron.sh`. По умолчанию backup запускается раз в 10 дней в 03:00. Cloud/GitHub backup работает только с зашифрованным архивом.
 
 ## Проверки
 

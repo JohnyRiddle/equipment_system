@@ -75,6 +75,17 @@ from .report_exports import build_csv_response, build_pdf_response, build_xlsx_r
 
 PATCH_NOTES = [
     {
+        'version': '0.1.6',
+        'date': '2026-05-15',
+        'title': 'Backup раз в 10 дней и ручной запуск',
+        'summary': 'Автоматический backup теперь запускается раз в 10 дней, а ручной режим описан отдельной командой.',
+        'items': [
+            'Cron-расписание по умолчанию изменено на запуск в 03:00 раз в 10 дней.',
+            'Ручной backup можно запустить командой scripts/production_backup.sh.',
+            'Документация backup обновлена под новый режим работы.',
+        ],
+    },
+    {
         'version': '0.1.5',
         'date': '2026-05-15',
         'title': 'Автоматический backup в три резерва',
