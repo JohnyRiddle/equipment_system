@@ -217,7 +217,7 @@ class UserManagementForm(AdminFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance and self.instance.pk:
+        if self.instance and self.instance.pk and not self.instance._state.adding:
             self.fields['legal_entities'].initial = self.instance.legal_entity_accesses.filter(
                 allow_all_locations=True,
             ).values_list('legal_entity_id', flat=True)
@@ -238,7 +238,7 @@ class UserManagementForm(AdminFormMixin, forms.ModelForm):
 
     def save(self, commit=True):
         old_password = None
-        if self.instance and self.instance.pk:
+        if self.instance and self.instance.pk and not self.instance._state.adding:
             old_password = User.objects.only('password').get(pk=self.instance.pk).password
 
         user = super().save(commit=False)

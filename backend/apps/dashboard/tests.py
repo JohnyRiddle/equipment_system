@@ -1416,6 +1416,48 @@ class DashboardEquipmentTests(TestCase):
             ).exists()
         )
 
+    def test_admin_can_create_user_from_admin_panel(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.post(
+            reverse('admin_section_create', kwargs={'section': 'users'}),
+            {
+                'username': 'new-panel-user',
+                'first_name': 'Новый',
+                'last_name': 'Пользователь',
+                'email': 'new-panel-user@example.com',
+                'phone': '',
+                'job_title': '',
+                'role': 'staff',
+                'is_active': 'on',
+                'password': 'StrongPass123!',
+                'scope_access_level': 'view',
+                'legal_entities': [self.legal_entity.pk],
+                'locations': [self.location.pk],
+                'can_view_equipment': 'on',
+                'can_edit_equipment': 'on',
+                'can_view_movements': 'on',
+                'can_view_accesses': 'on',
+                'can_edit_accesses': 'on',
+                'can_reveal_access_secrets': 'on',
+                'can_export_data': 'on',
+                'can_view_admin_panel': 'on',
+                'can_manage_directories': 'on',
+                'can_manage_users': 'on',
+                'can_view_audit_log': 'on',
+            },
+        )
+
+        self.assertRedirects(response, reverse('admin_section_list', kwargs={'section': 'users'}))
+        created_user = User.objects.get(username='new-panel-user')
+        self.assertTrue(created_user.check_password('StrongPass123!'))
+        self.assertTrue(
+            created_user.legal_entity_accesses.filter(legal_entity=self.legal_entity).exists()
+        )
+        self.assertTrue(
+            created_user.location_accesses.filter(location=self.location).exists()
+        )
+
     def test_user_update_keeps_password_when_password_field_is_blank(self):
         self.client.force_login(self.admin_user)
         old_password_hash = self.limited_user.password
