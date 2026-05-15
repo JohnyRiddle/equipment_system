@@ -11,7 +11,7 @@ services:
              gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers ${GUNICORN_WORKERS:-3} --timeout ${GUNICORN_TIMEOUT:-120}"
     environment:
       DJANGO_DEBUG: "0"
-      APP_VERSION: ${APP_VERSION:-0.1.4}
+      APP_VERSION: ${APP_VERSION:-0.1.5}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
       DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS}

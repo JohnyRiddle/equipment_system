@@ -339,6 +339,14 @@ Backup базы хранится в XML-формате:
 docker compose -f docker-compose.prod.yml exec web python manage.py backup_database_xml
 ```
 
+Для production добавлена автоматическая схема backup в три резерва:
+
+- локальная копия на сервере;
+- Google Drive через `rclone`;
+- отдельный приватный GitHub backup-репозиторий.
+
+Настройки лежат в `scripts/backup.env.example`, запуск выполняет `scripts/production_backup.sh`, расписание cron ставит `scripts/install_backup_cron.sh`. Cloud/GitHub backup работает только с зашифрованным архивом.
+
 ## Проверки
 
 ```powershell

@@ -75,6 +75,17 @@ from .report_exports import build_csv_response, build_pdf_response, build_xlsx_r
 
 PATCH_NOTES = [
     {
+        'version': '0.1.5',
+        'date': '2026-05-15',
+        'title': 'Автоматический backup в три резерва',
+        'summary': 'Добавлена серверная логика регулярного backup: локальная копия, Google Drive и отдельный GitHub-репозиторий.',
+        'items': [
+            'Backup создает XML базы, архив media, manifest и общий архив сборки.',
+            'Для Google Drive и GitHub используется только зашифрованный архив.',
+            'Добавлен установщик cron, чтобы backup запускался автоматически по расписанию.',
+        ],
+    },
+    {
         'version': '0.1.4',
         'date': '2026-05-15',
         'title': 'Backup базы в XML',

@@ -45,6 +45,65 @@ backups\YYYYMMDD-HHMMSS\
 docker compose -f docker-compose.prod.yml exec web python manage.py backup_database_xml
 ```
 
+## Автоматический production backup
+
+Для сервера добавлен Linux-скрипт:
+
+```bash
+./scripts/production_backup.sh
+```
+
+Он создает один backup и раскладывает его в три резерва:
+
+- локально на сервере: `/home/ivan/equipment_backups/local/`;
+- в Google Drive через `rclone`, если задан `BACKUP_RCLONE_REMOTE`;
+- в отдельный приватный GitHub backup-репозиторий, если задан `BACKUP_GITHUB_REPO_DIR`.
+
+Внутри локальной папки backup:
+
+- `database.xml` - полный XML backup базы;
+- `media.tar.gz` - архив media, если файлы есть;
+- `manifest.txt` - метаданные backup.
+
+Для облака и GitHub отправляется общий архив `equipment-backup-YYYYMMDD-HHMMSS.tar.gz.enc`.
+Если включен Google Drive или GitHub backup, переменная `BACKUP_ENCRYPTION_PASSWORD` обязательна.
+
+Пример настройки:
+
+```bash
+cp scripts/backup.env.example scripts/backup.env
+nano scripts/backup.env
+chmod 600 scripts/backup.env
+```
+
+Установка ежедневного запуска через cron:
+
+```bash
+chmod +x scripts/production_backup.sh scripts/install_backup_cron.sh
+./scripts/install_backup_cron.sh
+```
+
+По умолчанию cron запускает backup каждый день в 03:00. Расписание можно изменить:
+
+```bash
+BACKUP_CRON_SCHEDULE="0 2 * * *" ./scripts/install_backup_cron.sh
+```
+
+Лог автоматического backup:
+
+```bash
+tail -f /home/ivan/equipment_backups/backup.log
+```
+
+Расшифровка cloud/GitHub архива:
+
+```bash
+BACKUP_ENCRYPTION_PASSWORD="ваш-пароль" openssl enc -d -aes-256-cbc -pbkdf2 \
+  -in equipment-backup-YYYYMMDD-HHMMSS.tar.gz.enc \
+  -out equipment-backup-YYYYMMDD-HHMMSS.tar.gz \
+  -pass env:BACKUP_ENCRYPTION_PASSWORD
+```
+
 ## Восстановление
 
 Восстановление перезаписывает данные в текущей базе объектами из `database.xml`.
