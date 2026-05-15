@@ -23,7 +23,7 @@ backups\YYYYMMDD-HHMMSS\
 
 Внутри:
 
-- `database.sql` - SQL dump PostgreSQL через `pg_dump`;
+- `database.xml` - полный backup базы в стандартном XML-формате фикстур Django;
 - `media.zip` - архив `backend/media`, если в media есть файлы;
 - `manifest.txt` - краткое описание backup.
 
@@ -33,14 +33,21 @@ backups\YYYYMMDD-HHMMSS\
 .\scripts\backup.ps1 `
   -OutputRoot "D:\equipment_backups" `
   -DbContainer "equipment_db" `
+  -WebContainer "equipment_web" `
   -DbName "equipment_db" `
   -DbUser "equipment_user" `
   -MediaPath "backend\media"
 ```
 
+Прямая команда для создания XML backup внутри web-контейнера:
+
+```powershell
+docker compose -f docker-compose.prod.yml exec web python manage.py backup_database_xml
+```
+
 ## Восстановление
 
-Восстановление перезаписывает данные в текущей базе объектами из `database.sql`.
+Восстановление перезаписывает данные в текущей базе объектами из `database.xml`.
 Перед запуском убедитесь, что выбран правильный backup.
 
 ```powershell
@@ -49,7 +56,8 @@ backups\YYYYMMDD-HHMMSS\
 
 Скрипт:
 
-- применяет `database.sql` к PostgreSQL через `psql`;
+- очищает текущую базу через `manage.py flush`;
+- загружает `database.xml` через `manage.py loaddata`;
 - распаковывает `media.zip` в `backend/media`, если архив есть.
 
 ## Проверка после восстановления
@@ -71,5 +79,5 @@ cd backend
 
 - Храните backup вне репозитория и вне сервера приложения.
 - Проверяйте восстановление на отдельной тестовой БД, а не сразу на production.
-- Не храните backup с секретами в публичных папках: SQL dump содержит пользователей, доступы и зашифрованные секреты.
+- Не храните backup с секретами в публичных папках: XML backup содержит пользователей, доступы и зашифрованные секреты.
 - Сохраняйте вместе с backup актуальный `.env` или production secret vault: без `ACCESS_SECRET_KEYS` старые секреты доступов нельзя расшифровать.

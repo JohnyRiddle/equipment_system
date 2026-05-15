@@ -75,6 +75,17 @@ from .report_exports import build_csv_response, build_pdf_response, build_xlsx_r
 
 PATCH_NOTES = [
     {
+        'version': '0.1.4',
+        'date': '2026-05-15',
+        'title': 'Backup базы в XML',
+        'summary': 'Полный backup базы теперь создается в общепринятом XML-формате фикстур Django.',
+        'items': [
+            'Добавлена команда backup_database_xml для создания полного XML backup базы.',
+            'Скрипт backup сохраняет базу в файл database.xml рядом с архивом media.',
+            'Скрипт restore восстанавливает данные из database.xml через штатный механизм loaddata.',
+        ],
+    },
+    {
         'version': '0.1.3',
         'date': '2026-05-15',
         'title': 'Создание пользователей без ошибки 500',

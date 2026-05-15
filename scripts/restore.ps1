@@ -3,6 +3,7 @@ param(
     [string]$BackupDir,
 
     [string]$DbContainer = "equipment_db",
+    [string]$WebContainer = "equipment_web",
     [string]$DbName = "equipment_db",
     [string]$DbUser = "equipment_user",
     [string]$MediaPath = "backend\media",
@@ -17,16 +18,19 @@ if (-not $Force) {
 
 $repoRoot = Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")
 $backupPath = Resolve-Path -LiteralPath $BackupDir
-$dbDumpPath = Join-Path $backupPath "database.sql"
+$dbDumpPath = Join-Path $backupPath "database.xml"
 $mediaArchivePath = Join-Path $backupPath "media.zip"
 $mediaFullPath = Join-Path $repoRoot $MediaPath
 
 if (-not (Test-Path -LiteralPath $dbDumpPath)) {
-    throw "Database dump not found: $dbDumpPath"
+    throw "XML database backup not found: $dbDumpPath"
 }
 
-Write-Host "Restoring PostgreSQL database..."
-Get-Content -LiteralPath $dbDumpPath -Raw | docker exec -i $DbContainer psql -U $DbUser -d $DbName
+Write-Host "Restoring XML database backup..."
+docker cp $dbDumpPath "${WebContainer}:/tmp/database.xml"
+docker exec $WebContainer python manage.py flush --noinput
+docker exec $WebContainer python manage.py loaddata /tmp/database.xml
+docker exec $WebContainer rm -f /tmp/database.xml | Out-Null
 
 if ((Test-Path -LiteralPath $mediaArchivePath) -and ((Get-Item -LiteralPath $mediaArchivePath).Length -gt 0)) {
     Write-Host "Restoring media files..."

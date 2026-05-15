@@ -327,6 +327,18 @@ Production compose запускает Django через Gunicorn, отдает `
 
 Подробная инструкция: [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md).
 
+Backup базы хранится в XML-формате:
+
+- `database.xml` - полный Django XML fixture с записями базы;
+- `media.zip` - архив файлов media;
+- `manifest.txt` - метаданные backup.
+
+Прямая команда XML backup:
+
+```powershell
+docker compose -f docker-compose.prod.yml exec web python manage.py backup_database_xml
+```
+
 ## Проверки
 
 ```powershell
