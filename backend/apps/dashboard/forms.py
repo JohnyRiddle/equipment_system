@@ -260,8 +260,8 @@ class EquipmentFileForm(forms.ModelForm):
         model = EquipmentFile
         fields = ['title', 'file', 'comment']
         labels = {
-            'title': 'Название',
-            'file': 'Файл',
+            'title': 'Название документа',
+            'file': 'Документ',
             'comment': 'Комментарий',
         }
         widgets = {

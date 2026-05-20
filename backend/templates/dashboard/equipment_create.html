@@ -12,7 +12,7 @@
     <form method="post">
         {% csrf_token %}
 
-        <div class="form-grid">
+        <div class="form-grid equipment-form-grid">
             <div class="form-group">
                 <label for="{{ form.legal_entity.id_for_label }}">{{ form.legal_entity.label }}</label>
                 {{ form.legal_entity }}

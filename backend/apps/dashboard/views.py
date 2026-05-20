@@ -76,6 +76,17 @@ from .report_exports import build_csv_response, build_pdf_response, build_xlsx_r
 
 PATCH_NOTES = [
     {
+        'version': '0.1.9',
+        'date': '2026-05-20',
+        'title': 'Документы и форма на iPad',
+        'summary': 'Форма оборудования стала устойчивее на планшетах, а загрузка файлов теперь оформлена как документы.',
+        'items': [
+            'Поля дат на iPad переходят в одну колонку и не накладываются друг на друга.',
+            'В карточке оборудования появилась кнопка "Добавить документ".',
+            'Раздел "Файлы" переименован в "Документы", при этом существующие загруженные файлы сохраняются.',
+        ],
+    },
+    {
         'version': '0.1.8',
         'date': '2026-05-20',
         'title': 'Исправление поля "Склад"',
@@ -2229,8 +2240,8 @@ def equipment_file_create_view(request, pk):
             equipment_file.equipment = equipment
             equipment_file.uploaded_by = request.user
             equipment_file.save()
-            log_action(request, ActionLog.ACTION_CREATE, equipment_file, message='Добавлен файл оборудования.')
-            messages.success(request, 'Файл добавлен.')
+            log_action(request, ActionLog.ACTION_CREATE, equipment_file, message='Добавлен документ оборудования.')
+            messages.success(request, 'Документ добавлен.')
             return redirect('equipment_detail', pk=equipment.pk)
     else:
         form = EquipmentFileForm()
@@ -2262,8 +2273,8 @@ def equipment_file_archive_view(request, pk, file_pk):
     )
     equipment_file.is_active = False
     equipment_file.save(update_fields=['is_active'])
-    log_action(request, ActionLog.ACTION_ARCHIVE, equipment_file, message='Файл оборудования архивирован.')
-    messages.success(request, 'Файл архивирован.')
+    log_action(request, ActionLog.ACTION_ARCHIVE, equipment_file, message='Документ оборудования архивирован.')
+    messages.success(request, 'Документ архивирован.')
     return redirect('equipment_detail', pk=equipment.pk)
 
 

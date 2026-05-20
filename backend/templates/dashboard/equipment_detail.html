@@ -23,6 +23,7 @@
             <div class="actions-column">
                 <a href="{% url 'equipment_update' equipment.pk %}" class="btn btn-secondary">Редактировать</a>
                 <a href="{% url 'equipment_move' equipment.pk %}" class="btn">Переместить</a>
+                <a href="{% url 'equipment_file_create' equipment.pk %}" class="btn btn-secondary">Добавить документ</a>
                 <a href="{% url 'equipment_repair_create' equipment.pk %}" class="btn btn-secondary">Отправить в ремонт</a>
                 {% if active_inventory_sessions %}
                     <a href="{% url 'equipment_add_to_inventory_session' equipment.pk %}" class="btn btn-secondary">Добавить в инвентаризацию</a>
@@ -235,9 +236,9 @@
 
     <div class="card">
         <div class="page-header">
-            <h3>Файлы</h3>
+            <h3>Документы</h3>
             {% if can_edit_equipment %}
-                <a href="{% url 'equipment_file_create' equipment.pk %}" class="btn btn-secondary">Добавить файл</a>
+                <a href="{% url 'equipment_file_create' equipment.pk %}" class="btn btn-secondary">Добавить документ</a>
             {% endif %}
         </div>
 
@@ -265,7 +266,7 @@
                 <hr class="section-divider">
             {% endif %}
         {% empty %}
-            <p class="empty-state">Файлы не добавлены</p>
+            <p class="empty-state">Документы не добавлены</p>
         {% endfor %}
     </div>
 </div>
