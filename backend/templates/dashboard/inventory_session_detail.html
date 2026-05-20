@@ -104,5 +104,6 @@
 {% endblock %}
 
 {% block scripts %}
+    <script src="{% static 'js/vendor/jsQR.js' %}?v={{ APP_VERSION }}"></script>
     <script src="{% static 'js/inventory_scan.js' %}?v={{ APP_VERSION }}"></script>
 {% endblock %}

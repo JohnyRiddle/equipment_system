@@ -79,6 +79,17 @@ from .report_exports import build_csv_response, build_pdf_response, build_xlsx_r
 
 PATCH_NOTES = [
     {
+        'version': '0.1.15',
+        'date': '2026-05-20',
+        'title': 'Сканирование QR на iPhone',
+        'summary': 'Добавлен резервный механизм сканирования QR для Safari на iPhone.',
+        'items': [
+            'Если браузер не поддерживает BarcodeDetector, QR распознается через локальную библиотеку jsQR.',
+            'Сканирование камерой больше не зависит от внешнего CDN.',
+            'Для доступа к камере на iPhone страница должна открываться по HTTPS или иметь разрешение камеры в браузере.',
+        ],
+    },
+    {
         'version': '0.1.14',
         'date': '2026-05-20',
         'title': 'NFC-метки в инвентаризации',

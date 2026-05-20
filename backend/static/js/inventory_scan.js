@@ -10,6 +10,8 @@
         return;
     }
 
+    const canvas = document.createElement('canvas');
+    const canvasContext = canvas.getContext('2d', { willReadFrequently: true });
     let stream = null;
     let stopped = true;
 
@@ -25,7 +27,40 @@
         }
         video.srcObject = null;
         cameraBox.hidden = true;
-        button.textContent = 'Сканировать камерой';
+        button.textContent = 'Сканировать QR камерой';
+    }
+
+    function submitScanValue(value) {
+        if (!value) {
+            return false;
+        }
+        input.value = value;
+        stopCamera();
+        form.submit();
+        return true;
+    }
+
+    function scanWithJsQr() {
+        if (!window.jsQR || !canvasContext || video.readyState !== video.HAVE_ENOUGH_DATA) {
+            return false;
+        }
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvasContext.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = canvasContext.getImageData(0, 0, canvas.width, canvas.height);
+        const code = window.jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: 'dontInvert',
+        });
+        return code && submitScanValue(code.data);
+    }
+
+    async function scanWithBarcodeDetector(detector) {
+        if (!detector) {
+            return false;
+        }
+        const codes = await detector.detect(video);
+        return codes.length > 0 && submitScanValue(codes[0].rawValue);
     }
 
     async function scanLoop(detector) {
@@ -34,29 +69,47 @@
         }
 
         try {
-            const codes = await detector.detect(video);
-            if (codes.length > 0 && codes[0].rawValue) {
-                input.value = codes[0].rawValue;
-                stopCamera();
-                form.submit();
+            const foundByNativeDetector = await scanWithBarcodeDetector(detector);
+            const foundByJsQr = foundByNativeDetector || scanWithJsQr();
+            if (foundByJsQr) {
                 return;
             }
         } catch (error) {
-            setStatus('Камера работает, но QR пока не найден. Для NFC используйте считыватель метки.');
+            scanWithJsQr();
         }
 
-        window.requestAnimationFrame(() => scanLoop(detector));
+        if (!stopped) {
+            setStatus('Камера работает, но QR пока не найден. Для NFC используйте считыватель метки.');
+            window.requestAnimationFrame(() => scanLoop(detector));
+        }
+    }
+
+    async function createDetector() {
+        if (!('BarcodeDetector' in window)) {
+            return null;
+        }
+        try {
+            return new window.BarcodeDetector({ formats: ['qr_code'] });
+        } catch (error) {
+            return null;
+        }
     }
 
     async function startCamera() {
-        if (!('BarcodeDetector' in window)) {
-            setStatus('Браузер не поддерживает сканирование камерой. Используйте внешний сканер, NFC-считыватель или вставьте ссылку из метки.');
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             cameraBox.hidden = false;
+            setStatus('Браузер не дал доступ к камере. На iPhone откройте страницу по HTTPS или используйте внешний сканер/NFC-считыватель.');
+            return;
+        }
+
+        if (!('BarcodeDetector' in window) && !window.jsQR) {
+            cameraBox.hidden = false;
+            setStatus('Сканирование камерой недоступно. Используйте внешний сканер, NFC-считыватель или вставьте ссылку из метки.');
             return;
         }
 
         try {
-            const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+            const detector = await createDetector();
             stream = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: { ideal: 'environment' } },
                 audio: false,
@@ -71,7 +124,7 @@
         } catch (error) {
             stopCamera();
             cameraBox.hidden = false;
-            setStatus('Не удалось включить камеру. Проверьте разрешение браузера или используйте внешний сканер/NFC-считыватель.');
+            setStatus('Не удалось включить камеру. На iPhone проверьте разрешение камеры и открывайте страницу по HTTPS.');
         }
     }
 
