@@ -42,7 +42,7 @@
                 return;
             }
         } catch (error) {
-            setStatus('Камера работает, но QR пока не найден.');
+            setStatus('Камера работает, но QR пока не найден. Для NFC используйте считыватель метки.');
         }
 
         window.requestAnimationFrame(() => scanLoop(detector));
@@ -50,7 +50,7 @@
 
     async function startCamera() {
         if (!('BarcodeDetector' in window)) {
-            setStatus('Браузер не поддерживает сканирование камерой. Используйте внешний сканер или вставьте ссылку из QR.');
+            setStatus('Браузер не поддерживает сканирование камерой. Используйте внешний сканер, NFC-считыватель или вставьте ссылку из метки.');
             cameraBox.hidden = false;
             return;
         }
@@ -66,12 +66,12 @@
             stopped = false;
             cameraBox.hidden = false;
             button.textContent = 'Остановить камеру';
-            setStatus('Наведите камеру на QR-код.');
+            setStatus('Наведите камеру на QR-код. Для NFC используйте считыватель метки.');
             scanLoop(detector);
         } catch (error) {
             stopCamera();
             cameraBox.hidden = false;
-            setStatus('Не удалось включить камеру. Проверьте разрешение браузера или используйте внешний сканер.');
+            setStatus('Не удалось включить камеру. Проверьте разрешение браузера или используйте внешний сканер/NFC-считыватель.');
         }
     }
 

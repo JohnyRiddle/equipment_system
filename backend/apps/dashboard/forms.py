@@ -458,12 +458,12 @@ class InventoryAddEquipmentForm(forms.Form):
 
 class InventoryScanEquipmentForm(forms.Form):
     qr_value = forms.CharField(
-        label='QR-код оборудования',
+        label='QR/NFC метка оборудования',
         max_length=1000,
         widget=forms.TextInput(attrs={
             'autocomplete': 'off',
             'autofocus': 'autofocus',
-            'placeholder': 'Отсканируйте QR-код или вставьте ссылку',
+            'placeholder': 'Отсканируйте QR/NFC или вставьте ссылку',
         }),
     )
 

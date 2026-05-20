@@ -916,6 +916,36 @@ class DashboardEquipmentTests(TestCase):
         self.assertEqual(item.actual_location, self.equipment.location)
         self.assertEqual(item.actual_warehouse, self.equipment.warehouse)
 
+    def test_inventory_session_can_add_equipment_by_nfc_uid_scan(self):
+        session = InventorySession.objects.create(
+            name='NFC inventory',
+            legal_entity=self.other_legal_entity,
+            location=self.location,
+            status='in_progress',
+            created_by=self.admin_user,
+        )
+        tag = EquipmentTag.objects.create(
+            equipment=self.equipment,
+            legal_entity=self.equipment.legal_entity,
+            tag_type='NFC',
+            code='NFC-SCAN-001',
+            uid='04AABBCCDDEE',
+            payload='nfc://equipment/test-terminal',
+            payload_format='text',
+            is_active=True,
+        )
+        self.client.force_login(self.admin_user)
+
+        response = self.client.post(
+            reverse('inventory_session_scan_item', kwargs={'pk': session.pk}),
+            {'qr_value': tag.uid},
+        )
+
+        item = InventoryItem.objects.get(session=session, equipment=self.equipment)
+        self.assertRedirects(response, reverse('inventory_session_detail', kwargs={'pk': session.pk}))
+        self.assertEqual(item.scanned_tag, tag)
+        self.assertEqual(item.checked_by, self.admin_user)
+
     def test_inventory_session_qr_scan_rejects_equipment_from_other_location(self):
         session = InventorySession.objects.create(
             name='QR inventory location guard',

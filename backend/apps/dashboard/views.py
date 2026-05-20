@@ -79,6 +79,17 @@ from .report_exports import build_csv_response, build_pdf_response, build_xlsx_r
 
 PATCH_NOTES = [
     {
+        'version': '0.1.14',
+        'date': '2026-05-20',
+        'title': 'NFC-метки в инвентаризации',
+        'summary': 'Добавление оборудования в акт инвентаризации теперь работает не только по QR, но и по NFC-меткам.',
+        'items': [
+            'Система ищет оборудование по NFC UID, коду метки, ссылке из метки или UUID оборудования.',
+            'Поле сканирования на странице акта переименовано в QR/NFC.',
+            'Правила безопасности остались прежними: оборудование добавляется только в акт своей локации и только при наличии доступа.',
+        ],
+    },
+    {
         'version': '0.1.13',
         'date': '2026-05-20',
         'title': 'Добавление в инвентаризацию по QR',
@@ -1267,13 +1278,13 @@ def _resolve_equipment_scan(scan_value):
     tag = None
     if tag_code:
         tag = EquipmentTag.objects.select_related('equipment').filter(
-            code__iexact=tag_code,
+            Q(code__iexact=tag_code) | Q(uid__iexact=tag_code),
             is_active=True,
         ).first()
 
     if tag is None:
         tag = EquipmentTag.objects.select_related('equipment').filter(
-            payload__in={scan_value, path},
+            Q(payload__in={scan_value, path}) | Q(uid__iexact=scan_value),
             is_active=True,
         ).first()
 
@@ -1287,7 +1298,7 @@ def _resolve_equipment_scan(scan_value):
     if equipment is None:
         return None, None
 
-    tag = equipment.tags.filter(tag_type='QR', is_active=True).first()
+    tag = equipment.tags.filter(tag_type__in=['QR', 'NFC'], is_active=True).order_by('tag_type').first()
     return equipment, tag
 
 
@@ -1354,12 +1365,12 @@ def inventory_session_scan_item_view(request, pk):
 
     form = InventoryScanEquipmentForm(request.POST)
     if not form.is_valid():
-        messages.error(request, 'Не удалось прочитать QR-код.')
+        messages.error(request, 'Не удалось прочитать QR/NFC метку.')
         return redirect('inventory_session_detail', pk=session.pk)
 
     equipment, scanned_tag = _resolve_equipment_scan(form.cleaned_data['qr_value'])
     if equipment is None:
-        messages.error(request, 'Оборудование по этому QR-коду не найдено.')
+        messages.error(request, 'Оборудование по этой QR/NFC метке не найдено.')
         return redirect('inventory_session_detail', pk=session.pk)
 
     allowed_equipment = get_user_equipment_queryset(request.user).filter(is_active=True)
@@ -1402,9 +1413,9 @@ def inventory_session_scan_item_view(request, pk):
         ])
         messages.info(request, f'{equipment.name} уже есть в акте. Отметка сканирования обновлена.')
     else:
-        messages.success(request, f'{equipment.name} добавлено в акт по QR-коду.')
+        messages.success(request, f'{equipment.name} добавлено в акт по QR/NFC метке.')
 
-    log_action(request, ActionLog.ACTION_UPDATE, item, message='Позиция добавлена в акт инвентаризации по QR-коду.')
+    log_action(request, ActionLog.ACTION_UPDATE, item, message='Позиция добавлена в акт инвентаризации по QR/NFC метке.')
     return redirect('inventory_session_detail', pk=session.pk)
 
 

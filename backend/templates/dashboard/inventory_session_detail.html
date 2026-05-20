@@ -24,20 +24,20 @@
 
 {% if can_edit_inventory and session.status != 'completed' %}
     <div class="card">
-        <h2 class="section-title">Сканирование QR-кода</h2>
+        <h2 class="section-title">Сканирование QR/NFC</h2>
         <form method="post" action="{% url 'inventory_session_scan_item' session.pk %}">
             {% csrf_token %}
             <div class="form-grid">
                 <div class="form-group">
                     <label for="{{ scan_form.qr_value.id_for_label }}">{{ scan_form.qr_value.label }}</label>
                     {{ scan_form.qr_value }}
-                    <p class="field-help">Отсканируйте QR-код оборудования. Подходит ссылка из QR, код вида EQ-000001 или UUID оборудования.</p>
+                    <p class="field-help">Отсканируйте QR-код или NFC-метку оборудования. Подходит ссылка из метки, код вида EQ-000001, NFC UID или UUID оборудования.</p>
                     {% if scan_form.qr_value.errors %}<div class="form-error">{{ scan_form.qr_value.errors }}</div>{% endif %}
                 </div>
             </div>
             <div class="actions-row inventory-scan-actions">
-                <button type="button" class="btn btn-secondary" id="inventory-scan-camera-button">Сканировать камерой</button>
-                <button type="submit" class="btn">Добавить по QR</button>
+                <button type="button" class="btn btn-secondary" id="inventory-scan-camera-button">Сканировать QR камерой</button>
+                <button type="submit" class="btn">Добавить по QR/NFC</button>
             </div>
             <div class="inventory-scan-camera" id="inventory-scan-camera" hidden>
                 <video id="inventory-scan-video" class="inventory-scan-video" playsinline muted></video>
