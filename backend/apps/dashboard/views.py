@@ -51,6 +51,7 @@ from .access import (
     user_can_admin_directories,
     user_can_edit_equipment,
     user_can_edit_scope,
+    user_has_global_access,
     user_can_manage_repairs,
     user_has_any_edit_access,
 )
@@ -74,6 +75,17 @@ from .report_exports import build_csv_response, build_pdf_response, build_xlsx_r
 
 
 PATCH_NOTES = [
+    {
+        'version': '0.1.7',
+        'date': '2026-05-20',
+        'title': 'Проверка backup и актов инвентаризации',
+        'summary': 'Проверены серверные backup-логи и исправлено открытие пустого акта инвентаризации после создания.',
+        'items': [
+            'Локальный backup на сервере успешно создает XML базы и зашифрованный архив.',
+            'Google Drive и GitHub backup требуют заполнения внешних настроек и пока выключены.',
+            'Администратор теперь может открыть новый акт инвентаризации даже до добавления оборудования.',
+        ],
+    },
     {
         'version': '0.1.6',
         'date': '2026-05-15',
@@ -815,6 +827,14 @@ def reports_home_view(request):
 
 
 def get_user_inventory_queryset(user):
+    if user_has_global_access(user):
+        return InventorySession.objects.select_related(
+            'legal_entity',
+            'location',
+            'created_by',
+            'confirmed_by',
+        )
+
     allowed_equipment = get_user_equipment_queryset(user)
     return InventorySession.objects.filter(
         Q(legal_entity__equipment_items__in=allowed_equipment) |

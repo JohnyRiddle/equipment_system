@@ -844,6 +844,26 @@ class DashboardEquipmentTests(TestCase):
         self.assertNotContains(print_response, 'sidebar')
         self.assertNotContains(print_response, 'Система оборудования')
 
+    def test_global_user_can_open_new_empty_inventory_session(self):
+        empty_legal_entity = LegalEntity.objects.create(name='ООО «Пустая зона»', short_name='Пустая зона')
+        empty_location = Location.objects.create(name='Пустая локация')
+        self.client.force_login(self.admin_user)
+
+        response = self.client.post(
+            reverse('inventory_session_create'),
+            {
+                'name': 'Инвентаризация без позиций',
+                'act_number': 'INV-EMPTY-001',
+                'legal_entity': empty_legal_entity.pk,
+                'location': empty_location.pk,
+                'period_start': '2026-05-20',
+                'period_end': '2026-05-20',
+            },
+        )
+
+        session = InventorySession.objects.get(act_number='INV-EMPTY-001')
+        self.assertRedirects(response, reverse('inventory_session_detail', kwargs={'pk': session.pk}))
+
     def test_equipment_can_be_added_to_active_inventory_from_card(self):
         session = InventorySession.objects.create(
             name='Быстрая инвентаризация',
