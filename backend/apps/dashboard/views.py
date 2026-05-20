@@ -76,6 +76,16 @@ from .report_exports import build_csv_response, build_pdf_response, build_xlsx_r
 
 PATCH_NOTES = [
     {
+        'version': '0.1.10',
+        'date': '2026-05-20',
+        'title': 'Обновление статики для iPad',
+        'summary': 'Добавлено версионирование CSS и JS, чтобы браузер не показывал старую версию поля "Склад".',
+        'items': [
+            'Файлы main.css и equipment_form.js теперь подключаются с номером версии приложения.',
+            'После патча iPad должен загрузить свежий JS с нормальной подсказкой "Выберите склад".',
+        ],
+    },
+    {
         'version': '0.1.9',
         'date': '2026-05-20',
         'title': 'Документы и форма на iPad',
