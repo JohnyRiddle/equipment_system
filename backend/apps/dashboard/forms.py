@@ -1,4 +1,5 @@
 from django import forms
+from django.forms import ModelChoiceField
 
 from apps.equipment.models import (
     Equipment,
@@ -21,6 +22,18 @@ from .access import (
     get_editable_locations,
     get_user_equipment_queryset,
 )
+
+
+class EquipmentInventoryChoiceField(ModelChoiceField):
+    def label_from_instance(self, obj):
+        parts = [obj.name]
+        if obj.inventory_number:
+            parts.append(f'инв. {obj.inventory_number}')
+        if obj.legal_entity:
+            parts.append(str(obj.legal_entity))
+        if obj.warehouse:
+            parts.append(str(obj.warehouse))
+        return ' · '.join(parts)
 
 
 def _get_warehouse_name_choices():
@@ -412,7 +425,7 @@ class InventorySessionForm(forms.ModelForm):
 
 
 class InventoryAddEquipmentForm(forms.Form):
-    equipment = forms.ModelChoiceField(
+    equipment = EquipmentInventoryChoiceField(
         queryset=Equipment.objects.none(),
         label='Оборудование',
     )
@@ -432,8 +445,9 @@ class InventoryAddEquipmentForm(forms.Form):
         )
         if self.session is not None:
             queryset = queryset.filter(
-                legal_entity=self.session.legal_entity,
                 location=self.session.location,
+            ).exclude(
+                inventory_items__session=self.session,
             )
         self.fields['equipment'].queryset = queryset.order_by('name')
         self.fields['equipment'].empty_label = 'Выберите оборудование'

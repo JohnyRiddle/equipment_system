@@ -29,6 +29,7 @@
                 <div class="form-group">
                     <label for="{{ add_form.equipment.id_for_label }}">{{ add_form.equipment.label }}</label>
                     {{ add_form.equipment }}
+                    <p class="field-help">Показывается активное оборудование выбранной локации. Юрлицо и склад указаны в названии позиции.</p>
                     {% if add_form.equipment.errors %}<div class="form-error">{{ add_form.equipment.errors }}</div>{% endif %}
                 </div>
             </div>

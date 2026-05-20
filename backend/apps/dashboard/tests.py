@@ -864,6 +864,27 @@ class DashboardEquipmentTests(TestCase):
         session = InventorySession.objects.get(act_number='INV-EMPTY-001')
         self.assertRedirects(response, reverse('inventory_session_detail', kwargs={'pk': session.pk}))
 
+    def test_inventory_session_can_add_equipment_from_same_location_with_other_legal_entity(self):
+        session = InventorySession.objects.create(
+            name='Инвентаризация локации',
+            legal_entity=self.other_legal_entity,
+            location=self.location,
+            status='in_progress',
+            created_by=self.admin_user,
+        )
+        self.client.force_login(self.admin_user)
+
+        detail_response = self.client.get(reverse('inventory_session_detail', kwargs={'pk': session.pk}))
+        add_response = self.client.post(
+            reverse('inventory_session_add_item', kwargs={'pk': session.pk}),
+            {'equipment': self.equipment.pk},
+        )
+
+        self.assertContains(detail_response, self.equipment.name)
+        self.assertContains(detail_response, self.legal_entity.name)
+        self.assertRedirects(add_response, reverse('inventory_session_detail', kwargs={'pk': session.pk}))
+        self.assertTrue(InventoryItem.objects.filter(session=session, equipment=self.equipment).exists())
+
     def test_equipment_can_be_added_to_active_inventory_from_card(self):
         session = InventorySession.objects.create(
             name='Быстрая инвентаризация',
