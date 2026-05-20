@@ -68,7 +68,7 @@
 
         const placeholder = document.createElement('option');
         placeholder.value = '';
-        placeholder.textContent = 'Р’С‹Р±РµСЂРёС‚Рµ СЃРєР»Р°Рґ';
+        placeholder.textContent = 'Выберите склад';
         warehouseSelect.appendChild(placeholder);
 
         items.forEach(function (item) {
