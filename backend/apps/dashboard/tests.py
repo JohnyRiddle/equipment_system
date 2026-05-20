@@ -885,6 +885,64 @@ class DashboardEquipmentTests(TestCase):
         self.assertRedirects(add_response, reverse('inventory_session_detail', kwargs={'pk': session.pk}))
         self.assertTrue(InventoryItem.objects.filter(session=session, equipment=self.equipment).exists())
 
+    def test_inventory_session_can_add_equipment_by_qr_scan(self):
+        session = InventorySession.objects.create(
+            name='QR inventory',
+            legal_entity=self.other_legal_entity,
+            location=self.location,
+            status='in_progress',
+            created_by=self.admin_user,
+        )
+        tag = EquipmentTag.objects.create(
+            equipment=self.equipment,
+            legal_entity=self.equipment.legal_entity,
+            tag_type='QR',
+            code='EQ-QR-SCAN-001',
+            payload=f'http://testserver/equipment/{self.equipment.pk}/',
+            payload_format='url',
+            is_active=True,
+        )
+        self.client.force_login(self.admin_user)
+
+        response = self.client.post(
+            reverse('inventory_session_scan_item', kwargs={'pk': session.pk}),
+            {'qr_value': tag.payload},
+        )
+
+        item = InventoryItem.objects.get(session=session, equipment=self.equipment)
+        self.assertRedirects(response, reverse('inventory_session_detail', kwargs={'pk': session.pk}))
+        self.assertEqual(item.scanned_tag, tag)
+        self.assertEqual(item.checked_by, self.admin_user)
+        self.assertEqual(item.actual_location, self.equipment.location)
+        self.assertEqual(item.actual_warehouse, self.equipment.warehouse)
+
+    def test_inventory_session_qr_scan_rejects_equipment_from_other_location(self):
+        session = InventorySession.objects.create(
+            name='QR inventory location guard',
+            legal_entity=self.legal_entity,
+            location=self.location,
+            status='in_progress',
+            created_by=self.admin_user,
+        )
+        tag = EquipmentTag.objects.create(
+            equipment=self.other_equipment,
+            legal_entity=self.other_equipment.legal_entity,
+            tag_type='QR',
+            code='EQ-QR-SCAN-OTHER',
+            payload=f'/equipment/{self.other_equipment.pk}/',
+            payload_format='url',
+            is_active=True,
+        )
+        self.client.force_login(self.admin_user)
+
+        response = self.client.post(
+            reverse('inventory_session_scan_item', kwargs={'pk': session.pk}),
+            {'qr_value': tag.code},
+        )
+
+        self.assertRedirects(response, reverse('inventory_session_detail', kwargs={'pk': session.pk}))
+        self.assertFalse(InventoryItem.objects.filter(session=session, equipment=self.other_equipment).exists())
+
     def test_equipment_can_be_added_to_active_inventory_from_card(self):
         session = InventorySession.objects.create(
             name='Быстрая инвентаризация',

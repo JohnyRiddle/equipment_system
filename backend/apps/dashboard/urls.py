@@ -56,6 +56,7 @@ from .views import (
     inventory_session_detail_view,
     inventory_session_list_view,
     inventory_session_print_view,
+    inventory_session_scan_item_view,
     cost_centers_by_location_view,
     warehouses_by_cost_center_view,
 )
@@ -115,6 +116,7 @@ urlpatterns = [
     path('inventory/create/', inventory_session_create_view, name='inventory_session_create'),
     path('inventory/<uuid:pk>/', inventory_session_detail_view, name='inventory_session_detail'),
     path('inventory/<uuid:pk>/add-item/', inventory_session_add_item_view, name='inventory_session_add_item'),
+    path('inventory/<uuid:pk>/scan/', inventory_session_scan_item_view, name='inventory_session_scan_item'),
     path('inventory/<uuid:pk>/confirm/', inventory_session_confirm_view, name='inventory_session_confirm'),
     path('inventory/<uuid:pk>/print/', inventory_session_print_view, name='inventory_session_print'),
     path('inventory/<uuid:pk>/items/<uuid:item_pk>/check/', inventory_item_check_view, name='inventory_item_check'),

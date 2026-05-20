@@ -456,6 +456,24 @@ class InventoryAddEquipmentForm(forms.Form):
             field.widget.attrs['class'] = f'{current_class} form-control'.strip()
 
 
+class InventoryScanEquipmentForm(forms.Form):
+    qr_value = forms.CharField(
+        label='QR-код оборудования',
+        max_length=1000,
+        widget=forms.TextInput(attrs={
+            'autocomplete': 'off',
+            'autofocus': 'autofocus',
+            'placeholder': 'Отсканируйте QR-код или вставьте ссылку',
+        }),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            current_class = field.widget.attrs.get('class', '')
+            field.widget.attrs['class'] = f'{current_class} form-control inventory-scan-input'.strip()
+
+
 class InventoryItemCheckForm(forms.ModelForm):
     class Meta:
         model = InventoryItem

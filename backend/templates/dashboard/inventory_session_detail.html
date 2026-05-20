@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ session.name }}{% endblock %}
 
@@ -23,6 +24,30 @@
 
 {% if can_edit_inventory and session.status != 'completed' %}
     <div class="card">
+        <h2 class="section-title">Сканирование QR-кода</h2>
+        <form method="post" action="{% url 'inventory_session_scan_item' session.pk %}">
+            {% csrf_token %}
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ scan_form.qr_value.id_for_label }}">{{ scan_form.qr_value.label }}</label>
+                    {{ scan_form.qr_value }}
+                    <p class="field-help">Отсканируйте QR-код оборудования. Подходит ссылка из QR, код вида EQ-000001 или UUID оборудования.</p>
+                    {% if scan_form.qr_value.errors %}<div class="form-error">{{ scan_form.qr_value.errors }}</div>{% endif %}
+                </div>
+            </div>
+            <div class="actions-row inventory-scan-actions">
+                <button type="button" class="btn btn-secondary" id="inventory-scan-camera-button">Сканировать камерой</button>
+                <button type="submit" class="btn">Добавить по QR</button>
+            </div>
+            <div class="inventory-scan-camera" id="inventory-scan-camera" hidden>
+                <video id="inventory-scan-video" class="inventory-scan-video" playsinline muted></video>
+                <p class="field-help" id="inventory-scan-status">Наведите камеру на QR-код.</p>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2 class="section-title">Ручное добавление</h2>
         <form method="post" action="{% url 'inventory_session_add_item' session.pk %}">
             {% csrf_token %}
             <div class="form-grid">
@@ -76,4 +101,8 @@
         <p class="empty-state">Позиции пока не добавлены.</p>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'js/inventory_scan.js' %}?v={{ APP_VERSION }}"></script>
 {% endblock %}

@@ -1,5 +1,7 @@
 import csv
 from datetime import timedelta
+from urllib.parse import urlparse
+from uuid import UUID
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -68,6 +70,7 @@ from .forms import (
     EquipmentRequisiteForm,
     InventoryAddEquipmentForm,
     InventoryItemCheckForm,
+    InventoryScanEquipmentForm,
     InventorySessionForm,
 )
 from .pdf import build_qr_labels_pdf
@@ -75,6 +78,18 @@ from .report_exports import build_csv_response, build_pdf_response, build_xlsx_r
 
 
 PATCH_NOTES = [
+    {
+        'version': '0.1.13',
+        'date': '2026-05-20',
+        'title': 'Добавление в инвентаризацию по QR',
+        'summary': 'В акте инвентаризации появилось поле для сканирования QR-кода оборудования.',
+        'items': [
+            'Сканер может передать полную ссылку, ссылку вида /equipment/<id>/, ссылку /tag/<code>/ или сам код QR.',
+            'На поддерживаемых браузерах можно включить камеру и считать QR прямо со страницы акта.',
+            'После сканирования оборудование сразу добавляется в текущий акт инвентаризации.',
+            'Если оборудование уже есть в акте, система обновляет отметку сканирования и не создает дубль.',
+        ],
+    },
     {
         'version': '0.1.12',
         'date': '2026-05-20',
@@ -1222,6 +1237,60 @@ def inventory_session_create_view(request):
     )
 
 
+def _equipment_uuid_from_scan_value(scan_value):
+    try:
+        return UUID(str(scan_value))
+    except (TypeError, ValueError):
+        return None
+
+
+def _resolve_equipment_scan(scan_value):
+    scan_value = (scan_value or '').strip()
+    if not scan_value:
+        return None, None
+
+    parsed = urlparse(scan_value)
+    path = parsed.path if parsed.scheme or parsed.netloc else scan_value
+    path_parts = [part for part in path.strip('/').split('/') if part]
+
+    tag_code = ''
+    equipment_uuid = None
+
+    if len(path_parts) >= 2 and path_parts[-2] == 'tag':
+        tag_code = path_parts[-1]
+    elif len(path_parts) >= 2 and path_parts[-2] == 'equipment':
+        equipment_uuid = _equipment_uuid_from_scan_value(path_parts[-1])
+    else:
+        equipment_uuid = _equipment_uuid_from_scan_value(scan_value)
+        tag_code = scan_value
+
+    tag = None
+    if tag_code:
+        tag = EquipmentTag.objects.select_related('equipment').filter(
+            code__iexact=tag_code,
+            is_active=True,
+        ).first()
+
+    if tag is None:
+        tag = EquipmentTag.objects.select_related('equipment').filter(
+            payload__in={scan_value, path},
+            is_active=True,
+        ).first()
+
+    if tag is not None:
+        return tag.equipment, tag
+
+    if equipment_uuid is None:
+        return None, None
+
+    equipment = Equipment.objects.filter(pk=equipment_uuid).first()
+    if equipment is None:
+        return None, None
+
+    tag = equipment.tags.filter(tag_type='QR', is_active=True).first()
+    return equipment, tag
+
+
 @login_required
 def inventory_session_detail_view(request, pk):
     session = get_object_or_404(get_user_inventory_queryset(request.user), pk=pk)
@@ -1243,6 +1312,7 @@ def inventory_session_detail_view(request, pk):
             'session': session,
             'items': items,
             'add_form': InventoryAddEquipmentForm(user=request.user, session=session),
+            'scan_form': InventoryScanEquipmentForm(),
             'can_edit_inventory': user_can_edit_scope(request.user, session.legal_entity, session.location),
         },
     )
@@ -1271,6 +1341,70 @@ def inventory_session_add_item_view(request, pk):
         messages.success(request, 'Позиция добавлена в акт.')
     else:
         messages.error(request, 'Не удалось добавить позицию.')
+    return redirect('inventory_session_detail', pk=session.pk)
+
+
+@login_required
+@require_POST
+def inventory_session_scan_item_view(request, pk):
+    session = get_object_or_404(get_user_inventory_queryset(request.user), pk=pk)
+    require_scope_edit_access(request.user, session.legal_entity, session.location)
+    if session.status in ['completed', 'cancelled']:
+        raise PermissionDenied
+
+    form = InventoryScanEquipmentForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, 'Не удалось прочитать QR-код.')
+        return redirect('inventory_session_detail', pk=session.pk)
+
+    equipment, scanned_tag = _resolve_equipment_scan(form.cleaned_data['qr_value'])
+    if equipment is None:
+        messages.error(request, 'Оборудование по этому QR-коду не найдено.')
+        return redirect('inventory_session_detail', pk=session.pk)
+
+    allowed_equipment = get_user_equipment_queryset(request.user).filter(is_active=True)
+    if not allowed_equipment.filter(pk=equipment.pk).exists():
+        messages.error(request, 'Нет доступа к этому оборудованию.')
+        return redirect('inventory_session_detail', pk=session.pk)
+
+    if equipment.location_id != session.location_id:
+        messages.error(
+            request,
+            f'Оборудование относится к локации "{equipment.location}", а акт создан для "{session.location}".',
+        )
+        return redirect('inventory_session_detail', pk=session.pk)
+
+    item, created = InventoryItem.objects.get_or_create(
+        session=session,
+        equipment=equipment,
+        defaults={
+            'scanned_tag': scanned_tag,
+            'actual_location': equipment.location,
+            'actual_warehouse': equipment.warehouse,
+            'estimated_value': equipment.estimated_current_value,
+            'checked_by': request.user,
+        },
+    )
+    if not created:
+        item.found = True
+        item.scanned_tag = scanned_tag or item.scanned_tag
+        item.actual_location = item.actual_location or equipment.location
+        item.actual_warehouse = item.actual_warehouse or equipment.warehouse
+        item.checked_by = request.user
+        item.checked_at = timezone.now()
+        item.save(update_fields=[
+            'found',
+            'scanned_tag',
+            'actual_location',
+            'actual_warehouse',
+            'checked_by',
+            'checked_at',
+        ])
+        messages.info(request, f'{equipment.name} уже есть в акте. Отметка сканирования обновлена.')
+    else:
+        messages.success(request, f'{equipment.name} добавлено в акт по QR-коду.')
+
+    log_action(request, ActionLog.ACTION_UPDATE, item, message='Позиция добавлена в акт инвентаризации по QR-коду.')
     return redirect('inventory_session_detail', pk=session.pk)
 
 
