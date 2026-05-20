@@ -27,6 +27,12 @@ class LegalEntityAdminForm(AdminFormMixin, forms.ModelForm):
     class Meta:
         model = LegalEntity
         fields = ['name', 'short_name', 'tax_id', 'is_active']
+        labels = {
+            'name': 'Название',
+            'short_name': 'Краткое название',
+            'tax_id': 'ИНН',
+            'is_active': 'Активно',
+        }
 
 
 class LocationAdminForm(AdminFormMixin, forms.ModelForm):

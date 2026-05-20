@@ -1261,6 +1261,12 @@ class DashboardEquipmentTests(TestCase):
         self.assertContains(legal_entities_response, 'Удалить')
         self.assertEqual(users_response.status_code, 200)
         self.assertEqual(create_legal_entity_response.status_code, 200)
+        self.assertContains(create_legal_entity_response, 'Название')
+        self.assertContains(create_legal_entity_response, 'Краткое название')
+        self.assertContains(create_legal_entity_response, 'ИНН')
+        self.assertContains(create_legal_entity_response, 'Активно')
+        self.assertNotContains(create_legal_entity_response, 'Short name')
+        self.assertNotContains(create_legal_entity_response, 'Tax id')
         self.assertEqual(delete_legal_entity_response.status_code, 200)
 
     def test_company_admin_can_create_cost_center_outside_scope_when_permissions_enabled(self):
