@@ -79,6 +79,17 @@ from .report_exports import build_csv_response, build_pdf_response, build_xlsx_r
 
 PATCH_NOTES = [
     {
+        'version': '0.1.16',
+        'date': '2026-05-21',
+        'title': 'Статусы и акт инвентаризации',
+        'summary': 'Акты инвентаризации получили русские статусы и поток согласования.',
+        'items': [
+            'Статусы актов: Активная, Проведение - согласование, Подтверждено, Отменена.',
+            'Подтверждающий и ответственный в акте отображаются по ФИО, если оно заполнено в пользователе.',
+            'В список инвентаризаций добавлены выпадающие фильтры по юрлицу и локации.',
+        ],
+    },
+    {
         'version': '0.1.15',
         'date': '2026-05-20',
         'title': 'Сканирование QR на iPhone',
@@ -322,7 +333,9 @@ def build_attention_notifications(user, limit_per_group=None):
     ]
     open_repairs = repair_queryset.filter(status__in=open_repair_statuses).order_by('created_at')
     stale_repairs = open_repairs.filter(created_at__lte=stale_repair_before)
-    unfinished_inventory = inventory_queryset.filter(status__in=['draft', 'in_progress']).order_by('started_at', 'period_start')
+    unfinished_inventory = inventory_queryset.filter(
+        status__in=[InventorySession.STATUS_ACTIVE, InventorySession.STATUS_APPROVAL],
+    ).order_by('started_at', 'period_start')
     stale_equipment = equipment_queryset.filter(is_active=True).filter(
         Q(last_inventory_date__isnull=True) |
         Q(last_inventory_date__lt=stale_inventory_before)
@@ -907,7 +920,7 @@ def reports_home_view(request):
             'repair_cost_total': repair_cost_total,
             'movement_total': movement_queryset.count(),
             'inventory_total': inventory_queryset.count(),
-            'inventory_completed': inventory_queryset.filter(status='completed').count(),
+            'inventory_completed': inventory_queryset.filter(status=InventorySession.STATUS_CONFIRMED).count(),
             'inventory_item_count': inventory_item_count,
             'inventory_found_count': inventory_found_count,
             'repair_status_choices': EquipmentRepair.STATUS_CHOICES,
@@ -1194,11 +1207,21 @@ def update_equipment_status_by_code(equipment, code):
         equipment.save(update_fields=['status', 'updated_at'])
 
 
+def user_display_name(user):
+    if not user:
+        return ''
+    full_name = user.get_full_name().strip()
+    return full_name or user.username
+
+
 @login_required
 def inventory_session_list_view(request):
-    queryset = get_user_inventory_queryset(request.user).order_by('-period_start', '-started_at', '-id')
+    base_queryset = get_user_inventory_queryset(request.user)
+    queryset = base_queryset.order_by('-period_start', '-started_at', '-id')
     query = request.GET.get('q', '').strip()
     status = request.GET.get('status', '').strip()
+    legal_entity_id = request.GET.get('legal_entity', '').strip()
+    location_id = request.GET.get('location', '').strip()
     if query:
         queryset = queryset.filter(
             Q(name__icontains=query) |
@@ -1207,11 +1230,17 @@ def inventory_session_list_view(request):
         )
     if status:
         queryset = queryset.filter(status=status)
+    if legal_entity_id:
+        queryset = queryset.filter(legal_entity_id=legal_entity_id)
+    if location_id:
+        queryset = queryset.filter(location_id=location_id)
 
     paginator = Paginator(queryset, 25)
     page_obj = paginator.get_page(request.GET.get('page'))
     filter_query_params = request.GET.copy()
     filter_query_params.pop('page', None)
+    for session in page_obj.object_list:
+        session.confirmed_by_display = user_display_name(session.confirmed_by)
 
     return render(
         request,
@@ -1223,7 +1252,15 @@ def inventory_session_list_view(request):
             'filter_querystring': filter_query_params.urlencode(),
             'query': query,
             'selected_status': status,
+            'selected_legal_entity': legal_entity_id,
+            'selected_location': location_id,
             'statuses': InventorySession.STATUS_CHOICES,
+            'legal_entities': LegalEntity.objects.filter(
+                inventory_sessions__in=base_queryset,
+            ).distinct().order_by('name'),
+            'locations': Location.objects.filter(
+                inventory_sessions__in=base_queryset,
+            ).distinct().order_by('name'),
             'can_create_inventory': user_has_any_edit_access(request.user),
         },
     )
@@ -1240,7 +1277,7 @@ def inventory_session_create_view(request):
             session = form.save(commit=False)
             require_scope_edit_access(request.user, session.legal_entity, session.location)
             session.created_by = request.user
-            session.status = 'in_progress'
+            session.status = InventorySession.STATUS_ACTIVE
             session.started_at = timezone.now()
             session.save()
             log_action(request, ActionLog.ACTION_CREATE, session, message='Создан акт инвентаризации.')
@@ -1326,6 +1363,13 @@ def inventory_session_detail_view(request, pk):
         'checked_by',
         'scanned_tag',
     ).order_by('equipment__name')
+    session.created_by_display = user_display_name(session.created_by)
+    session.confirmed_by_display = user_display_name(session.confirmed_by)
+    confirmation_action_label = ''
+    if session.status == InventorySession.STATUS_ACTIVE:
+        confirmation_action_label = 'На согласование'
+    elif session.status == InventorySession.STATUS_APPROVAL:
+        confirmation_action_label = 'Подтверждено'
 
     return render(
         request,
@@ -1336,6 +1380,7 @@ def inventory_session_detail_view(request, pk):
             'add_form': InventoryAddEquipmentForm(user=request.user, session=session),
             'scan_form': InventoryScanEquipmentForm(),
             'can_edit_inventory': user_can_edit_scope(request.user, session.legal_entity, session.location),
+            'confirmation_action_label': confirmation_action_label,
         },
     )
 
@@ -1345,7 +1390,7 @@ def inventory_session_detail_view(request, pk):
 def inventory_session_add_item_view(request, pk):
     session = get_object_or_404(get_user_inventory_queryset(request.user), pk=pk)
     require_scope_edit_access(request.user, session.legal_entity, session.location)
-    if session.status in ['completed', 'cancelled']:
+    if session.status in [InventorySession.STATUS_CONFIRMED, InventorySession.STATUS_CANCELLED]:
         raise PermissionDenied
 
     form = InventoryAddEquipmentForm(request.POST, user=request.user, session=session)
@@ -1371,7 +1416,7 @@ def inventory_session_add_item_view(request, pk):
 def inventory_session_scan_item_view(request, pk):
     session = get_object_or_404(get_user_inventory_queryset(request.user), pk=pk)
     require_scope_edit_access(request.user, session.legal_entity, session.location)
-    if session.status in ['completed', 'cancelled']:
+    if session.status in [InventorySession.STATUS_CONFIRMED, InventorySession.STATUS_CANCELLED]:
         raise PermissionDenied
 
     form = InventoryScanEquipmentForm(request.POST)
@@ -1477,13 +1522,21 @@ def inventory_item_check_view(request, pk, item_pk):
 def inventory_session_confirm_view(request, pk):
     session = get_object_or_404(get_user_inventory_queryset(request.user), pk=pk)
     require_scope_edit_access(request.user, session.legal_entity, session.location)
-    session.status = 'completed'
-    session.completed_at = timezone.now()
-    session.confirmed_at = timezone.now()
-    session.confirmed_by = request.user
-    session.save(update_fields=['status', 'completed_at', 'confirmed_at', 'confirmed_by'])
-    log_action(request, ActionLog.ACTION_UPDATE, session, message='Акт инвентаризации подтвержден.')
-    messages.success(request, 'Акт инвентаризации подтвержден.')
+    if session.status == InventorySession.STATUS_ACTIVE:
+        session.status = InventorySession.STATUS_APPROVAL
+        session.completed_at = timezone.now()
+        session.save(update_fields=['status', 'completed_at'])
+        log_action(request, ActionLog.ACTION_UPDATE, session, message='Акт инвентаризации отправлен на согласование.')
+        messages.success(request, 'Акт инвентаризации отправлен на согласование.')
+    elif session.status == InventorySession.STATUS_APPROVAL:
+        session.status = InventorySession.STATUS_CONFIRMED
+        session.confirmed_at = timezone.now()
+        session.confirmed_by = request.user
+        session.save(update_fields=['status', 'confirmed_at', 'confirmed_by'])
+        log_action(request, ActionLog.ACTION_UPDATE, session, message='Акт инвентаризации подтвержден.')
+        messages.success(request, 'Акт инвентаризации подтвержден.')
+    else:
+        raise PermissionDenied
     return redirect('inventory_session_detail', pk=session.pk)
 
 
@@ -1497,6 +1550,8 @@ def inventory_session_print_view(request, pk):
         'actual_warehouse',
         'checked_by',
     ).order_by('equipment__name')
+    session.created_by_display = user_display_name(session.created_by)
+    session.confirmed_by_display = user_display_name(session.confirmed_by)
     return render(
         request,
         'dashboard/inventory_session_print.html',
@@ -2326,7 +2381,7 @@ def equipment_detail_view(request, pk):
             '-uploaded_at',
         ),
         'active_inventory_sessions': InventorySession.objects.filter(
-            status__in=['draft', 'in_progress'],
+            status__in=[InventorySession.STATUS_ACTIVE, InventorySession.STATUS_APPROVAL],
             legal_entity=equipment.legal_entity,
             location=equipment.location,
         ).order_by('-period_start', '-started_at', 'name'),

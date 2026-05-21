@@ -519,7 +519,9 @@ class EquipmentInventorySessionSelectForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.equipment = kwargs.pop('equipment', None)
         super().__init__(*args, **kwargs)
-        queryset = InventorySession.objects.filter(status__in=['draft', 'in_progress'])
+        queryset = InventorySession.objects.filter(
+            status__in=[InventorySession.STATUS_ACTIVE, InventorySession.STATUS_APPROVAL],
+        )
         if self.equipment is not None:
             queryset = queryset.filter(
                 legal_entity=self.equipment.legal_entity,

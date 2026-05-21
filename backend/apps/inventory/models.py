@@ -270,11 +270,16 @@ class EquipmentInventory(models.Model):
 
 
 class InventorySession(models.Model):
+    STATUS_ACTIVE = 'active'
+    STATUS_APPROVAL = 'approval'
+    STATUS_CONFIRMED = 'confirmed'
+    STATUS_CANCELLED = 'cancelled'
+
     STATUS_CHOICES = [
-        ('draft', 'Draft'),
-        ('in_progress', 'In Progress'),
-        ('completed', 'Completed'),
-        ('cancelled', 'Cancelled'),
+        (STATUS_ACTIVE, 'Активная'),
+        (STATUS_APPROVAL, 'Проведение - согласование'),
+        (STATUS_CONFIRMED, 'Подтверждено'),
+        (STATUS_CANCELLED, 'Отменена'),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -294,7 +299,7 @@ class InventorySession(models.Model):
     act_number = models.CharField(max_length=100, blank=True)
     period_start = models.DateField(null=True, blank=True)
     period_end = models.DateField(null=True, blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
     started_at = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
     confirmed_at = models.DateTimeField(null=True, blank=True)

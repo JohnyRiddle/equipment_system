@@ -544,7 +544,7 @@ class DashboardEquipmentTests(TestCase):
             act_number='REP-INV-001',
             legal_entity=self.legal_entity,
             location=self.location,
-            status='completed',
+            status=InventorySession.STATUS_CONFIRMED,
             created_by=self.admin_user,
             confirmed_by=self.admin_user,
         )
@@ -666,7 +666,7 @@ class DashboardEquipmentTests(TestCase):
             act_number='GSEARCH-001',
             legal_entity=self.legal_entity,
             location=self.location,
-            status='in_progress',
+            status=InventorySession.STATUS_ACTIVE,
             created_by=self.admin_user,
         )
         movement = EquipmentMovement.objects.create(
@@ -740,7 +740,7 @@ class DashboardEquipmentTests(TestCase):
             act_number='NOTIFY-INV',
             legal_entity=self.legal_entity,
             location=self.location,
-            status='in_progress',
+            status=InventorySession.STATUS_ACTIVE,
             created_by=self.admin_user,
         )
         access_type = AccessType.objects.create(code='notify-web', name='Notify web')
@@ -823,6 +823,7 @@ class DashboardEquipmentTests(TestCase):
                 'comment': 'Проверено по QR',
             },
         )
+        approval_response = self.client.post(reverse('inventory_session_confirm', kwargs={'pk': session.pk}))
         confirm_response = self.client.post(reverse('inventory_session_confirm', kwargs={'pk': session.pk}))
         print_response = self.client.get(reverse('inventory_session_print', kwargs={'pk': session.pk}))
 
@@ -833,8 +834,9 @@ class DashboardEquipmentTests(TestCase):
         self.assertRedirects(create_response, reverse('inventory_session_detail', kwargs={'pk': session.pk}))
         self.assertRedirects(add_response, reverse('inventory_session_detail', kwargs={'pk': session.pk}))
         self.assertRedirects(check_response, reverse('inventory_session_detail', kwargs={'pk': session.pk}))
+        self.assertRedirects(approval_response, reverse('inventory_session_detail', kwargs={'pk': session.pk}))
         self.assertRedirects(confirm_response, reverse('inventory_session_detail', kwargs={'pk': session.pk}))
-        self.assertEqual(session.status, 'completed')
+        self.assertEqual(session.status, InventorySession.STATUS_CONFIRMED)
         self.assertEqual(session.confirmed_by, self.admin_user)
         self.assertTrue(item.found)
         self.assertEqual(item.checked_by, self.admin_user)
@@ -869,7 +871,7 @@ class DashboardEquipmentTests(TestCase):
             name='Инвентаризация локации',
             legal_entity=self.other_legal_entity,
             location=self.location,
-            status='in_progress',
+            status=InventorySession.STATUS_ACTIVE,
             created_by=self.admin_user,
         )
         self.client.force_login(self.admin_user)
@@ -890,7 +892,7 @@ class DashboardEquipmentTests(TestCase):
             name='QR inventory',
             legal_entity=self.other_legal_entity,
             location=self.location,
-            status='in_progress',
+            status=InventorySession.STATUS_ACTIVE,
             created_by=self.admin_user,
         )
         tag = EquipmentTag.objects.create(
@@ -921,7 +923,7 @@ class DashboardEquipmentTests(TestCase):
             name='NFC inventory',
             legal_entity=self.other_legal_entity,
             location=self.location,
-            status='in_progress',
+            status=InventorySession.STATUS_ACTIVE,
             created_by=self.admin_user,
         )
         tag = EquipmentTag.objects.create(
@@ -951,7 +953,7 @@ class DashboardEquipmentTests(TestCase):
             name='QR inventory location guard',
             legal_entity=self.legal_entity,
             location=self.location,
-            status='in_progress',
+            status=InventorySession.STATUS_ACTIVE,
             created_by=self.admin_user,
         )
         tag = EquipmentTag.objects.create(
@@ -978,7 +980,7 @@ class DashboardEquipmentTests(TestCase):
             name='Быстрая инвентаризация',
             legal_entity=self.legal_entity,
             location=self.location,
-            status='in_progress',
+            status=InventorySession.STATUS_ACTIVE,
             created_by=self.admin_user,
         )
         self.client.force_login(self.admin_user)

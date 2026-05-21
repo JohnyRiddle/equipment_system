@@ -4,10 +4,7 @@
     <meta charset="utf-8">
     <title>Печать акта инвентаризации</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
+        * { box-sizing: border-box; }
         body {
             margin: 0;
             padding: 18mm;
@@ -16,61 +13,44 @@
             font-family: Arial, Helvetica, sans-serif;
             font-size: 12px;
         }
-
         h1 {
             margin: 0 0 12px;
             font-size: 22px;
             text-align: center;
         }
-
-        p {
-            margin: 4px 0;
-        }
-
+        p { margin: 4px 0; }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 14px;
         }
-
-        th,
-        td {
+        th, td {
             padding: 6px;
             border: 1px solid #9ca3af;
             vertical-align: top;
             text-align: left;
         }
-
         th {
             background: #f3f4f6;
             font-weight: 700;
         }
-
-        .act-meta {
-            margin-bottom: 16px;
-        }
-
+        .act-meta { margin-bottom: 16px; }
         .signatures {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 24px;
             margin-top: 28px;
         }
-
         .signature-line {
             padding-top: 28px;
             border-bottom: 1px solid #111827;
         }
-
         @page {
             size: A4;
             margin: 12mm;
         }
-
         @media print {
-            body {
-                padding: 0;
-            }
+            body { padding: 0; }
         }
     </style>
 </head>
@@ -84,7 +64,8 @@
         <p><strong>Локация:</strong> {{ session.location }}</p>
         <p><strong>Период:</strong> {{ session.period_start|default:"-" }} - {{ session.period_end|default:"-" }}</p>
         <p><strong>Статус:</strong> {{ session.get_status_display }}</p>
-        <p><strong>Подтверждено:</strong> {{ session.confirmed_at|default:"-" }} {{ session.confirmed_by|default:"" }}</p>
+        <p><strong>Ответственный за инвентаризацию:</strong> {{ session.created_by_display|default:"-" }}</p>
+        <p><strong>Подтверждено:</strong> {{ session.confirmed_at|default:"-" }}{% if session.confirmed_by_display %} {{ session.confirmed_by_display }}{% endif %}</p>
     </section>
 
     <table>
@@ -119,11 +100,11 @@
     <section class="signatures">
         <div>
             <div class="signature-line"></div>
-            <p>Ответственный за инвентаризацию</p>
+            <p>Ответственный за инвентаризацию{% if session.created_by_display %}: {{ session.created_by_display }}{% endif %}</p>
         </div>
         <div>
             <div class="signature-line"></div>
-            <p>Подтверждающий</p>
+            <p>Подтверждающий{% if session.confirmed_by_display %}: {{ session.confirmed_by_display }}{% endif %}</p>
         </div>
     </section>
 

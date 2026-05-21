@@ -31,6 +31,24 @@
                     {% endfor %}
                 </select>
             </div>
+            <div class="form-group">
+                <label for="legal_entity">Юрлицо</label>
+                <select name="legal_entity" id="legal_entity">
+                    <option value="">Все юрлица</option>
+                    {% for legal_entity in legal_entities %}
+                        <option value="{{ legal_entity.id }}" {% if selected_legal_entity == legal_entity.id|stringformat:"s" %}selected{% endif %}>{{ legal_entity }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="location">Локация</label>
+                <select name="location" id="location">
+                    <option value="">Все локации</option>
+                    {% for location in locations %}
+                        <option value="{{ location.id }}" {% if selected_location == location.id|stringformat:"s" %}selected{% endif %}>{{ location }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
         <div class="actions-row">
             <button type="submit" class="btn">Найти</button>
@@ -59,9 +77,15 @@
                             <td><a href="{% url 'inventory_session_detail' session.pk %}" class="table-link">{{ session.name }}</a></td>
                             <td>{{ session.legal_entity }}</td>
                             <td>{{ session.location }}</td>
-                            <td>{{ session.period_start|default:"—" }} — {{ session.period_end|default:"—" }}</td>
+                            <td>{{ session.period_start|default:"-" }} - {{ session.period_end|default:"-" }}</td>
                             <td>{{ session.get_status_display }}</td>
-                            <td>{{ session.confirmed_at|default:"—" }}</td>
+                            <td>
+                                {% if session.confirmed_at %}
+                                    {{ session.confirmed_at }}{% if session.confirmed_by_display %} · {{ session.confirmed_by_display }}{% endif %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>

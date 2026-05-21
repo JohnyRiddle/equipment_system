@@ -12,17 +12,34 @@
         </div>
         <div class="actions-row">
             <a href="{% url 'inventory_session_print' session.pk %}" class="btn btn-secondary">Печать акта</a>
-            {% if can_edit_inventory and session.status != 'completed' %}
+            {% if can_edit_inventory and confirmation_action_label %}
                 <form method="post" action="{% url 'inventory_session_confirm' session.pk %}" class="inline-form">
                     {% csrf_token %}
-                    <button type="submit" class="btn">Подтверждено</button>
+                    <button type="submit" class="btn">{{ confirmation_action_label }}</button>
                 </form>
             {% endif %}
         </div>
     </div>
 </div>
 
-{% if can_edit_inventory and session.status != 'completed' %}
+<div class="card">
+    <div class="info-grid">
+        <div class="info-item">
+            <span class="info-label">Статус</span>
+            <span class="info-value">{{ session.get_status_display }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Ответственный за инвентаризацию</span>
+            <span class="info-value">{{ session.created_by_display|default:"-" }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Подтверждающий</span>
+            <span class="info-value">{{ session.confirmed_by_display|default:"-" }}</span>
+        </div>
+    </div>
+</div>
+
+{% if can_edit_inventory and session.status != 'confirmed' %}
     <div class="card">
         <h2 class="section-title">Сканирование QR/NFC</h2>
         <form method="post" action="{% url 'inventory_session_scan_item' session.pk %}">
@@ -82,14 +99,14 @@
                         <tr>
                             <td><a href="{% url 'equipment_detail' item.equipment.pk %}" class="table-link">{{ item.equipment.name }}</a></td>
                             <td>{{ item.equipment.location }} · {{ item.equipment.warehouse }}</td>
-                            <td>{{ item.actual_location|default:"—" }} · {{ item.actual_warehouse|default:"—" }}</td>
+                            <td>{{ item.actual_location|default:"-" }} · {{ item.actual_warehouse|default:"-" }}</td>
                             <td>{{ item.get_condition_status_display }}</td>
-                            <td>{{ item.checked_by|default:"—" }}</td>
+                            <td>{{ item.checked_by|default:"-" }}</td>
                             <td>
-                                {% if can_edit_inventory and session.status != 'completed' %}
+                                {% if can_edit_inventory and session.status != 'confirmed' %}
                                     <a href="{% url 'inventory_item_check' session.pk item.pk %}" class="btn btn-small">Инвентаризировать</a>
                                 {% else %}
-                                    —
+                                    -
                                 {% endif %}
                             </td>
                         </tr>
