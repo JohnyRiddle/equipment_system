@@ -294,6 +294,20 @@ class InventorySession(models.Model):
         on_delete=models.CASCADE,
         related_name='inventory_sessions'
     )
+    cost_center = models.ForeignKey(
+        'organizations.CostCenter',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='inventory_sessions'
+    )
+    warehouse = models.ForeignKey(
+        'warehouses.Warehouse',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='inventory_sessions'
+    )
 
     name = models.CharField(max_length=255)
     act_number = models.CharField(max_length=100, blank=True)

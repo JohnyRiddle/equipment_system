@@ -1,5 +1,6 @@
 from django import forms
 from django.forms import ModelChoiceField
+from django.db.models import Q
 
 from apps.equipment.models import (
     Equipment,
@@ -388,12 +389,24 @@ class EquipmentInventoryForm(forms.ModelForm):
 class InventorySessionForm(forms.ModelForm):
     class Meta:
         model = InventorySession
-        fields = ['name', 'act_number', 'legal_entity', 'location', 'period_start', 'period_end', 'comment']
+        fields = [
+            'name',
+            'act_number',
+            'legal_entity',
+            'location',
+            'cost_center',
+            'warehouse',
+            'period_start',
+            'period_end',
+            'comment',
+        ]
         labels = {
             'name': 'Название инвентаризации',
             'act_number': 'Номер акта',
             'legal_entity': 'Юридическое лицо',
             'location': 'Локация',
+            'cost_center': 'ЦФО',
+            'warehouse': 'Место / зона',
             'period_start': 'Дата начала',
             'period_end': 'Дата окончания',
             'comment': 'Комментарий',
@@ -409,8 +422,15 @@ class InventorySessionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['legal_entity'].queryset = get_editable_legal_entities(self.user).order_by('name')
         self.fields['location'].queryset = get_editable_locations(self.user).order_by('name')
+        self.fields['cost_center'].queryset = get_editable_cost_centers(self.user).order_by('name')
+        self.fields['warehouse'].queryset = Warehouse.objects.filter(
+            cost_center__in=get_editable_cost_centers(self.user),
+            is_active=True,
+        ).select_related('cost_center').order_by('name')
         self.fields['legal_entity'].empty_label = 'Выберите юридическое лицо'
         self.fields['location'].empty_label = 'Выберите локацию'
+        self.fields['cost_center'].empty_label = 'Вся локация'
+        self.fields['warehouse'].empty_label = 'Все места / зоны'
         for field in self.fields.values():
             current_class = field.widget.attrs.get('class', '')
             field.widget.attrs['class'] = f'{current_class} form-control'.strip()
@@ -419,8 +439,20 @@ class InventorySessionForm(forms.ModelForm):
         cleaned_data = super().clean()
         period_start = cleaned_data.get('period_start')
         period_end = cleaned_data.get('period_end')
+        legal_entity = cleaned_data.get('legal_entity')
+        location = cleaned_data.get('location')
+        cost_center = cleaned_data.get('cost_center')
+        warehouse = cleaned_data.get('warehouse')
         if period_start and period_end and period_end < period_start:
             self.add_error('period_end', 'Дата окончания не может быть раньше даты начала.')
+        if legal_entity and cost_center and cost_center.legal_entity_id != legal_entity.id:
+            self.add_error('cost_center', 'ЦФО относится к другому юридическому лицу.')
+        if location and cost_center and cost_center.location_id != location.id:
+            self.add_error('cost_center', 'ЦФО относится к другой локации.')
+        if cost_center and warehouse and warehouse.cost_center_id != cost_center.id:
+            self.add_error('warehouse', 'Место / зона относится к другому ЦФО.')
+        if warehouse and not cost_center:
+            self.add_error('warehouse', 'Чтобы выбрать место / зону, сначала выберите ЦФО.')
         return cleaned_data
 
 
@@ -449,6 +481,10 @@ class InventoryAddEquipmentForm(forms.Form):
             ).exclude(
                 inventory_items__session=self.session,
             )
+            if self.session.cost_center_id:
+                queryset = queryset.filter(cost_center=self.session.cost_center)
+            if self.session.warehouse_id:
+                queryset = queryset.filter(warehouse=self.session.warehouse)
         self.fields['equipment'].queryset = queryset.order_by('name')
         self.fields['equipment'].empty_label = 'Выберите оборудование'
         for field in self.fields.values():
@@ -526,6 +562,10 @@ class EquipmentInventorySessionSelectForm(forms.Form):
             queryset = queryset.filter(
                 legal_entity=self.equipment.legal_entity,
                 location=self.equipment.location,
+            ).filter(
+                Q(cost_center__isnull=True) | Q(cost_center=self.equipment.cost_center),
+            ).filter(
+                Q(warehouse__isnull=True) | Q(warehouse=self.equipment.warehouse),
             )
         self.fields['session'].queryset = queryset.order_by('-period_start', '-started_at', 'name')
         self.fields['session'].empty_label = 'Выберите акт'

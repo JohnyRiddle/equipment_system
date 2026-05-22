@@ -887,6 +887,47 @@ class DashboardEquipmentTests(TestCase):
         self.assertRedirects(add_response, reverse('inventory_session_detail', kwargs={'pk': session.pk}))
         self.assertTrue(InventoryItem.objects.filter(session=session, equipment=self.equipment).exists())
 
+    def test_inventory_session_scope_limits_equipment_by_cost_center_and_warehouse(self):
+        other_zone = Warehouse.objects.create(cost_center=self.cost_center, name='Зал')
+        hidden_equipment = Equipment.objects.create(
+            legal_entity=self.legal_entity,
+            location=self.location,
+            cost_center=self.cost_center,
+            warehouse=other_zone,
+            category=self.category,
+            status=self.status,
+            name='Терминал зала',
+            serial_number='SER-ZONE',
+            inventory_number='INV-ZONE',
+        )
+        session = InventorySession.objects.create(
+            name='Инвентаризация кухни',
+            legal_entity=self.legal_entity,
+            location=self.location,
+            cost_center=self.cost_center,
+            warehouse=self.warehouse,
+            status=InventorySession.STATUS_ACTIVE,
+            created_by=self.admin_user,
+        )
+        self.client.force_login(self.admin_user)
+
+        detail_response = self.client.get(reverse('inventory_session_detail', kwargs={'pk': session.pk}))
+        add_visible_response = self.client.post(
+            reverse('inventory_session_add_item', kwargs={'pk': session.pk}),
+            {'equipment': self.equipment.pk},
+        )
+        add_hidden_response = self.client.post(
+            reverse('inventory_session_add_item', kwargs={'pk': session.pk}),
+            {'equipment': hidden_equipment.pk},
+        )
+
+        self.assertContains(detail_response, self.equipment.name)
+        self.assertNotContains(detail_response, hidden_equipment.name)
+        self.assertRedirects(add_visible_response, reverse('inventory_session_detail', kwargs={'pk': session.pk}))
+        self.assertRedirects(add_hidden_response, reverse('inventory_session_detail', kwargs={'pk': session.pk}))
+        self.assertTrue(InventoryItem.objects.filter(session=session, equipment=self.equipment).exists())
+        self.assertFalse(InventoryItem.objects.filter(session=session, equipment=hidden_equipment).exists())
+
     def test_inventory_session_can_add_equipment_by_qr_scan(self):
         session = InventorySession.objects.create(
             name='QR inventory',

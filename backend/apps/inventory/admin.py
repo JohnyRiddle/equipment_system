@@ -43,8 +43,8 @@ class EquipmentInventoryAdmin(admin.ModelAdmin):
 
 @admin.register(InventorySession)
 class InventorySessionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'act_number', 'legal_entity', 'location', 'status', 'period_start', 'period_end', 'confirmed_by', 'confirmed_at')
-    list_filter = ('legal_entity', 'location', 'status', 'period_start', 'period_end')
+    list_display = ('name', 'act_number', 'legal_entity', 'location', 'cost_center', 'warehouse', 'status', 'period_start', 'period_end', 'confirmed_by', 'confirmed_at')
+    list_filter = ('legal_entity', 'location', 'cost_center', 'warehouse', 'status', 'period_start', 'period_end')
     search_fields = ('name', 'act_number')
 
 

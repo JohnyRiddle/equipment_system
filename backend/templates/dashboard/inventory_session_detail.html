@@ -8,7 +8,11 @@
     <div class="page-header">
         <div>
             <h1 class="section-title">{{ session.name }}</h1>
-            <p class="muted">Акт {{ session.act_number|default:"без номера" }} · {{ session.legal_entity }} · {{ session.location }}</p>
+            <p class="muted">
+                Акт {{ session.act_number|default:"без номера" }} · {{ session.legal_entity }} · {{ session.location }}
+                {% if session.cost_center %} · {{ session.cost_center }}{% endif %}
+                {% if session.warehouse %} · {{ session.warehouse }}{% endif %}
+            </p>
         </div>
         <div class="actions-row">
             <a href="{% url 'inventory_session_print' session.pk %}" class="btn btn-secondary">Печать акта</a>
@@ -31,6 +35,14 @@
         <div class="info-item">
             <span class="info-label">Ответственный за инвентаризацию</span>
             <span class="info-value">{{ session.created_by_display|default:"-" }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">ЦФО</span>
+            <span class="info-value">{{ session.cost_center|default:"Вся локация" }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Место / зона</span>
+            <span class="info-value">{{ session.warehouse|default:"Все места / зоны" }}</span>
         </div>
         <div class="info-item">
             <span class="info-label">Подтверждающий</span>
@@ -71,7 +83,7 @@
                 <div class="form-group">
                     <label for="{{ add_form.equipment.id_for_label }}">{{ add_form.equipment.label }}</label>
                     {{ add_form.equipment }}
-                    <p class="field-help">Показывается активное оборудование выбранной локации. Юрлицо и склад указаны в названии позиции.</p>
+                    <p class="field-help">Показывается активное оборудование выбранной области: локации, ЦФО и места/зоны, если они указаны в акте.</p>
                     {% if add_form.equipment.errors %}<div class="form-error">{{ add_form.equipment.errors }}</div>{% endif %}
                 </div>
             </div>

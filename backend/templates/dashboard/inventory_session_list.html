@@ -49,6 +49,24 @@
                     {% endfor %}
                 </select>
             </div>
+            <div class="form-group">
+                <label for="cost_center">ЦФО</label>
+                <select name="cost_center" id="cost_center">
+                    <option value="">Все ЦФО</option>
+                    {% for cost_center in cost_centers %}
+                        <option value="{{ cost_center.id }}" {% if selected_cost_center == cost_center.id|stringformat:"s" %}selected{% endif %}>{{ cost_center }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="warehouse">Место / зона</label>
+                <select name="warehouse" id="warehouse">
+                    <option value="">Все места / зоны</option>
+                    {% for warehouse in warehouses %}
+                        <option value="{{ warehouse.id }}" {% if selected_warehouse == warehouse.id|stringformat:"s" %}selected{% endif %}>{{ warehouse }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
         <div class="actions-row">
             <button type="submit" class="btn">Найти</button>
@@ -66,6 +84,8 @@
                         <th>Акт</th>
                         <th>Юрлицо</th>
                         <th>Локация</th>
+                        <th>ЦФО</th>
+                        <th>Место / зона</th>
                         <th>Период</th>
                         <th>Статус</th>
                         <th>Подтверждено</th>
@@ -77,6 +97,8 @@
                             <td><a href="{% url 'inventory_session_detail' session.pk %}" class="table-link">{{ session.name }}</a></td>
                             <td>{{ session.legal_entity }}</td>
                             <td>{{ session.location }}</td>
+                            <td>{{ session.cost_center|default:"Вся локация" }}</td>
+                            <td>{{ session.warehouse|default:"Все места" }}</td>
                             <td>{{ session.period_start|default:"-" }} - {{ session.period_end|default:"-" }}</td>
                             <td>{{ session.get_status_display }}</td>
                             <td>

@@ -79,6 +79,17 @@ from .report_exports import build_csv_response, build_pdf_response, build_xlsx_r
 
 PATCH_NOTES = [
     {
+        'version': '0.1.17',
+        'date': '2026-05-22',
+        'title': 'Инвентаризация по ЦФО и месту',
+        'summary': 'Акт инвентаризации теперь можно ограничить не только локацией, но и ЦФО, кухней, баром, залом, складом или другой зоной.',
+        'items': [
+            'В форму создания акта добавлены поля "ЦФО" и "Место / зона".',
+            'Если ЦФО или место выбраны, в акт можно добавить только оборудование из этой области.',
+            'В списке актов появились фильтры по ЦФО и месту / зоне.',
+        ],
+    },
+    {
         'version': '0.1.16',
         'date': '2026-05-21',
         'title': 'Статусы и акт инвентаризации',
@@ -934,6 +945,8 @@ def get_user_inventory_queryset(user):
         return InventorySession.objects.select_related(
             'legal_entity',
             'location',
+            'cost_center',
+            'warehouse',
             'created_by',
             'confirmed_by',
         )
@@ -945,6 +958,8 @@ def get_user_inventory_queryset(user):
     ).select_related(
         'legal_entity',
         'location',
+        'cost_center',
+        'warehouse',
         'created_by',
         'confirmed_by',
     ).distinct()
@@ -1222,6 +1237,8 @@ def inventory_session_list_view(request):
     status = request.GET.get('status', '').strip()
     legal_entity_id = request.GET.get('legal_entity', '').strip()
     location_id = request.GET.get('location', '').strip()
+    cost_center_id = request.GET.get('cost_center', '').strip()
+    warehouse_id = request.GET.get('warehouse', '').strip()
     if query:
         queryset = queryset.filter(
             Q(name__icontains=query) |
@@ -1234,6 +1251,10 @@ def inventory_session_list_view(request):
         queryset = queryset.filter(legal_entity_id=legal_entity_id)
     if location_id:
         queryset = queryset.filter(location_id=location_id)
+    if cost_center_id:
+        queryset = queryset.filter(cost_center_id=cost_center_id)
+    if warehouse_id:
+        queryset = queryset.filter(warehouse_id=warehouse_id)
 
     paginator = Paginator(queryset, 25)
     page_obj = paginator.get_page(request.GET.get('page'))
@@ -1254,11 +1275,19 @@ def inventory_session_list_view(request):
             'selected_status': status,
             'selected_legal_entity': legal_entity_id,
             'selected_location': location_id,
+            'selected_cost_center': cost_center_id,
+            'selected_warehouse': warehouse_id,
             'statuses': InventorySession.STATUS_CHOICES,
             'legal_entities': LegalEntity.objects.filter(
                 inventory_sessions__in=base_queryset,
             ).distinct().order_by('name'),
             'locations': Location.objects.filter(
+                inventory_sessions__in=base_queryset,
+            ).distinct().order_by('name'),
+            'cost_centers': CostCenter.objects.filter(
+                inventory_sessions__in=base_queryset,
+            ).distinct().order_by('name'),
+            'warehouses': Warehouse.objects.filter(
                 inventory_sessions__in=base_queryset,
             ).distinct().order_by('name'),
             'can_create_inventory': user_has_any_edit_access(request.user),
@@ -1357,6 +1386,7 @@ def inventory_session_detail_view(request, pk):
         'equipment',
         'equipment__legal_entity',
         'equipment__location',
+        'equipment__cost_center',
         'equipment__warehouse',
         'actual_location',
         'actual_warehouse',
@@ -1438,6 +1468,18 @@ def inventory_session_scan_item_view(request, pk):
         messages.error(
             request,
             f'Оборудование относится к локации "{equipment.location}", а акт создан для "{session.location}".',
+        )
+        return redirect('inventory_session_detail', pk=session.pk)
+    if session.cost_center_id and equipment.cost_center_id != session.cost_center_id:
+        messages.error(
+            request,
+            f'Оборудование относится к ЦФО "{equipment.cost_center}", а акт создан для "{session.cost_center}".',
+        )
+        return redirect('inventory_session_detail', pk=session.pk)
+    if session.warehouse_id and equipment.warehouse_id != session.warehouse_id:
+        messages.error(
+            request,
+            f'Оборудование относится к месту "{equipment.warehouse}", а акт создан для "{session.warehouse}".',
         )
         return redirect('inventory_session_detail', pk=session.pk)
 
@@ -2384,6 +2426,10 @@ def equipment_detail_view(request, pk):
             status__in=[InventorySession.STATUS_ACTIVE, InventorySession.STATUS_APPROVAL],
             legal_entity=equipment.legal_entity,
             location=equipment.location,
+        ).filter(
+            Q(cost_center__isnull=True) | Q(cost_center=equipment.cost_center),
+        ).filter(
+            Q(warehouse__isnull=True) | Q(warehouse=equipment.warehouse),
         ).order_by('-period_start', '-started_at', 'name'),
         'note_form': EquipmentNoteForm(),
     }

@@ -62,6 +62,8 @@
         <p><strong>Инвентаризация:</strong> {{ session.name }}</p>
         <p><strong>Юридическое лицо:</strong> {{ session.legal_entity }}</p>
         <p><strong>Локация:</strong> {{ session.location }}</p>
+        <p><strong>ЦФО:</strong> {{ session.cost_center|default:"Вся локация" }}</p>
+        <p><strong>Место / зона:</strong> {{ session.warehouse|default:"Все места / зоны" }}</p>
         <p><strong>Период:</strong> {{ session.period_start|default:"-" }} - {{ session.period_end|default:"-" }}</p>
         <p><strong>Статус:</strong> {{ session.get_status_display }}</p>
         <p><strong>Ответственный за инвентаризацию:</strong> {{ session.created_by_display|default:"-" }}</p>
