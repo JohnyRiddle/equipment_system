@@ -72,6 +72,11 @@ def draw_text_lines(pdf, lines, x, y, max_width, line_height, max_lines=4):
             return
 
 
+def get_active_qr_code(equipment):
+    tag = equipment.tags.filter(tag_type='QR', is_active=True).first()
+    return tag.code if tag else ''
+
+
 def build_qr_labels_pdf(equipment_items):
     register_pdf_font()
 
@@ -107,10 +112,20 @@ def build_qr_labels_pdf(equipment_items):
         pdf.rect(x, y + label_height - 3, label_width, 3, stroke=0, fill=1)
 
         payload = build_equipment_qr_payload(equipment)
+        qr_x = x + 5 * mm
+        qr_y = y + label_height - qr_size - 13 * mm
+        qr_code = get_active_qr_code(equipment)
+
+        if qr_code:
+            pdf.setFillColor(colors.HexColor('#0b0b0c'))
+            pdf.setFont(FONT_NAME, 9)
+            code_width = pdf.stringWidth(qr_code, FONT_NAME, 9)
+            pdf.drawString(qr_x + (qr_size - code_width) / 2, qr_y + qr_size + 2.5 * mm, qr_code)
+
         pdf.drawImage(
             qr_image_reader(payload),
-            x + 5 * mm,
-            y + label_height - qr_size - 8 * mm,
+            qr_x,
+            qr_y,
             width=qr_size,
             height=qr_size,
             preserveAspectRatio=True,
@@ -137,10 +152,6 @@ def build_qr_labels_pdf(equipment_items):
             4.2 * mm,
             max_lines=5,
         )
-
-        pdf.setFont(FONT_NAME, 7)
-        pdf.setFillColor(colors.HexColor('#6b7280'))
-        pdf.drawString(x + 5 * mm, y + 5 * mm, payload)
 
     if not equipment_items:
         pdf.setFont(FONT_NAME, 14)
