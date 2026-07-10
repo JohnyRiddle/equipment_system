@@ -1698,6 +1698,24 @@ def inventory_report_export_csv_view(request):
 
 
 @login_required
+def inv1_report_export_view(request, pk=None):
+    inventory_queryset = get_user_inventory_queryset(request.user).order_by('-period_start', '-started_at')
+    if pk is not None:
+        inventory_queryset = inventory_queryset.filter(pk=pk)
+    else:
+        inventory_queryset = _apply_inventory_report_filters(request, inventory_queryset)
+
+    headers, rows = _inventory_report_rows(inventory_queryset)
+    log_action(
+        request,
+        ActionLog.ACTION_EXPORT,
+        message='Сформирован PDF ИНВ-1.',
+        metadata={'rows': inventory_queryset.count(), 'format': 'pdf'},
+    )
+    return _report_response(request, 'inv1_report', 'ИНВ-1', headers, rows, 'pdf')
+
+
+@login_required
 def movement_report_export_view(request, report_format='csv'):
     allowed_equipment = get_user_equipment_queryset(request.user)
     movements_queryset = (
@@ -2376,6 +2394,24 @@ def qr_print_pdf_view(request):
         ActionLog.ACTION_EXPORT,
         message='Сформирован PDF QR-этикеток.',
         metadata={'rows': len(equipment_items)},
+    )
+    return response
+
+
+@login_required
+def equipment_qr_label_pdf_view(request, pk):
+    equipment = get_object_or_404(get_user_equipment_queryset(request.user), pk=pk)
+    create_qr_tag_for_equipment(equipment, assigned_by=request.user, request=request)
+    response = HttpResponse(
+        build_qr_labels_pdf([equipment]),
+        content_type='application/pdf',
+    )
+    response['Content-Disposition'] = f'attachment; filename="equipment_qr_{equipment.pk}.pdf"'
+    log_action(
+        request,
+        ActionLog.ACTION_EXPORT,
+        equipment,
+        message='Сформирована PDF QR-этикетка оборудования.',
     )
     return response
 

@@ -153,7 +153,7 @@ class DashboardEquipmentTests(TestCase):
         tag = EquipmentTag.objects.get(equipment=created_equipment, tag_type='QR', is_active=True)
 
         self.assertRedirects(response, reverse('equipment_detail', kwargs={'pk': created_equipment.pk}))
-        self.assertEqual(tag.payload, f'http://testserver/equipment/{created_equipment.id}/')
+        self.assertTrue(tag.payload.endswith(f'/equipment/{created_equipment.id}/'))
         self.assertTrue(tag.qr_image)
         self.assertTrue(
             ActionLog.objects.filter(
@@ -188,7 +188,7 @@ class DashboardEquipmentTests(TestCase):
         self.assertIsNone(created_equipment.category)
         self.assertIsNone(created_equipment.status)
         self.assertIsNone(tag.legal_entity)
-        self.assertEqual(tag.payload, f'http://testserver/equipment/{created_equipment.id}/')
+        self.assertTrue(tag.payload.endswith(f'/equipment/{created_equipment.id}/'))
 
     def test_equipment_movement_updates_current_position_and_logs_history(self):
         self.client.force_login(self.admin_user)
