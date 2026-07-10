@@ -163,6 +163,33 @@ class DashboardEquipmentTests(TestCase):
             ).exists()
         )
 
+    def test_equipment_create_allows_empty_optional_fields(self):
+        self.client.force_login(self.admin_user)
+
+        with patch.object(
+            EquipmentTag,
+            'generate_qr_image',
+            lambda tag: setattr(tag.qr_image, 'name', f'qr_codes/qr_{tag.code}.png'),
+        ):
+            response = self.client.post(
+                reverse('equipment_create'),
+                {},
+            )
+
+        created_equipment = Equipment.objects.exclude(pk=self.equipment.pk).exclude(pk=self.other_equipment.pk).get()
+        tag = EquipmentTag.objects.get(equipment=created_equipment, tag_type='QR', is_active=True)
+
+        self.assertRedirects(response, reverse('equipment_detail', kwargs={'pk': created_equipment.pk}))
+        self.assertEqual(created_equipment.name, '')
+        self.assertIsNone(created_equipment.legal_entity)
+        self.assertIsNone(created_equipment.location)
+        self.assertIsNone(created_equipment.cost_center)
+        self.assertIsNone(created_equipment.warehouse)
+        self.assertIsNone(created_equipment.category)
+        self.assertIsNone(created_equipment.status)
+        self.assertIsNone(tag.legal_entity)
+        self.assertEqual(tag.payload, f'http://testserver/equipment/{created_equipment.id}/')
+
     def test_equipment_movement_updates_current_position_and_logs_history(self):
         self.client.force_login(self.admin_user)
 

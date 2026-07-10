@@ -31,6 +31,8 @@ class EquipmentTag(models.Model):
     legal_entity = models.ForeignKey(
         'organizations.LegalEntity',
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         related_name='equipment_tags'
     )
 

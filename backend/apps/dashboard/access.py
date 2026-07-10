@@ -56,7 +56,8 @@ def get_accessible_cost_centers(user):
 
     return queryset.filter(
         Q(legal_entity_id__in=legal_entity_ids) |
-        Q(location_id__in=location_ids)
+        Q(location_id__in=location_ids) |
+        Q(legal_entity__isnull=True, location__isnull=True)
     ).distinct()
 
 
@@ -201,6 +202,8 @@ def user_can_edit_scope(user, legal_entity, location):
         return False
     if user_has_global_access(user):
         return True
+    if legal_entity is None and location is None:
+        return user_has_any_edit_access(user)
 
     has_legal_entity_edit = user.legal_entity_accesses.filter(
         legal_entity=legal_entity,

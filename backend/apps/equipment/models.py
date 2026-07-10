@@ -49,24 +49,32 @@ class Equipment(models.Model):
     legal_entity = models.ForeignKey(
         'organizations.LegalEntity',
         on_delete=models.PROTECT,
+        null=True,
+        blank=True,
         related_name='equipment_items',
         verbose_name='Юридическое лицо'
     )
     location = models.ForeignKey(
         'locations.Location',
         on_delete=models.PROTECT,
+        null=True,
+        blank=True,
         related_name='equipment_items',
         verbose_name='Локация'
     )
     cost_center = models.ForeignKey(
         'organizations.CostCenter',
         on_delete=models.PROTECT,
+        null=True,
+        blank=True,
         related_name='equipment_items',
         verbose_name='ЦФО'
     )
     warehouse = models.ForeignKey(
         'warehouses.Warehouse',
         on_delete=models.PROTECT,
+        null=True,
+        blank=True,
         related_name='equipment_items',
         verbose_name='Склад'
     )
@@ -74,18 +82,23 @@ class Equipment(models.Model):
     category = models.ForeignKey(
         EquipmentCategory,
         on_delete=models.PROTECT,
+        null=True,
+        blank=True,
         related_name='equipment_items',
         verbose_name='Категория'
     )
     status = models.ForeignKey(
         EquipmentStatus,
         on_delete=models.PROTECT,
+        null=True,
+        blank=True,
         related_name='equipment_items',
         verbose_name='Статус'
     )
 
     name = models.CharField(
         max_length=255,
+        blank=True,
         verbose_name='Наименование'
     )
     brand = models.CharField(

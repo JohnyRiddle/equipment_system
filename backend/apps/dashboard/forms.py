@@ -118,6 +118,30 @@ class EquipmentCreateForm(forms.ModelForm):
         self.fields['status'].queryset = EquipmentStatus.objects.all().order_by('name')
         self.fields['responsible_user'].queryset = User.objects.filter(is_active=True).order_by('username')
 
+        for field_name in [
+            'legal_entity',
+            'location',
+            'cost_center',
+            'warehouse',
+            'category',
+            'status',
+            'name',
+            'brand',
+            'model',
+            'serial_number',
+            'inventory_number',
+            'purchase_date',
+            'warranty_until',
+            'price',
+            'estimated_current_value',
+            'placement_zone',
+            'last_inventory_date',
+            'last_repair_date',
+            'responsible_user',
+            'comment',
+        ]:
+            self.fields[field_name].required = False
+
         self.fields['legal_entity'].empty_label = 'Выберите юридическое лицо'
         self.fields['location'].empty_label = 'Выберите локацию'
         self.fields['cost_center'].empty_label = 'Выберите ЦФО'

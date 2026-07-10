@@ -2976,11 +2976,10 @@ def equipment_create_view(request):
     if request.method == 'POST':
         form = EquipmentCreateForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
-            require_scope_edit_access(
-                request.user,
-                form.cleaned_data['legal_entity'],
-                form.cleaned_data['location'],
-            )
+            legal_entity = form.cleaned_data.get('legal_entity')
+            location = form.cleaned_data.get('location')
+            if legal_entity or location:
+                require_scope_edit_access(request.user, legal_entity, location)
             equipment = form.save()
             create_qr_tag_for_equipment(equipment, assigned_by=request.user, request=request)
             log_action(request, ActionLog.ACTION_CREATE, equipment, message='Создана карточка оборудования.')
@@ -3012,11 +3011,10 @@ def equipment_update_view(request, pk):
     if request.method == 'POST':
         form = EquipmentCreateForm(request.POST, request.FILES, instance=equipment, user=request.user)
         if form.is_valid():
-            require_scope_edit_access(
-                request.user,
-                form.cleaned_data['legal_entity'],
-                form.cleaned_data['location'],
-            )
+            legal_entity = form.cleaned_data.get('legal_entity')
+            location = form.cleaned_data.get('location')
+            if legal_entity or location:
+                require_scope_edit_access(request.user, legal_entity, location)
             equipment = form.save()
             log_action(request, ActionLog.ACTION_UPDATE, equipment, message='Обновлена карточка оборудования.')
             messages.success(request, 'Оборудование успешно обновлено.')
