@@ -6,14 +6,18 @@
     <title>Печать QR</title>
 
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        @page {
+            size: 55mm 40mm;
+            margin: 0;
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(3, 55mm);
-            gap: 4mm;
+        html,
+        body {
+            width: 55mm;
+            min-height: 40mm;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
         }
 
         .item {
@@ -23,47 +27,70 @@
             height: 40mm;
             padding: 2mm 3mm;
             text-align: center;
-            page-break-inside: avoid;
+            page-break-after: always;
+            break-after: page;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
         }
 
         .item img {
-            width: 22mm;
-            height: 22mm;
+            width: 21mm;
+            height: 21mm;
             object-fit: contain;
+            flex: 0 0 auto;
         }
 
         .qr-code {
             font-weight: bold;
             font-size: 9pt;
             line-height: 1;
+            min-height: 4mm;
             margin-bottom: 1mm;
         }
 
-        .name {
+        .label-bottom {
+            width: 100%;
+            margin-top: 1mm;
             font-size: 6pt;
             line-height: 1.1;
-            margin-top: 1mm;
-            max-height: 7mm;
+            overflow: hidden;
+        }
+
+        .name {
+            max-height: 4.6mm;
             overflow: hidden;
         }
 
         .inv {
             font-weight: bold;
-            font-size: 6pt;
-            line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .print-actions {
-            margin-bottom: 20px;
+            margin: 0 0 20px;
+        }
+
+        @media screen {
+            body {
+                padding: 12px;
+            }
+
+            .item {
+                margin-bottom: 8px;
+            }
         }
 
         @media print {
             .no-print {
                 display: none;
+            }
+
+            .item:last-child {
+                page-break-after: auto;
+                break-after: auto;
             }
         }
     </style>
@@ -74,27 +101,23 @@
     <button onclick="window.print()">Печать</button>
 </div>
 
-<div class="grid">
-    {% for item in items %}
-        <div class="item">
-            <div class="qr-code">
-                {{ item.tag.code }}
-            </div>
-
-            {% if item.tag.qr_image %}
-                <img src="{{ item.tag.qr_image.url }}">
-            {% endif %}
-
-            <div class="inv">
-                {{ item.equipment.inventory_number }}
-            </div>
-
-            <div class="name">
-                {{ item.equipment.name }}
-            </div>
+{% for item in items %}
+    <div class="item">
+        <div class="qr-code">
+            {{ item.tag.code }}
         </div>
-    {% endfor %}
-</div>
+
+        {% if item.tag.qr_image %}
+            <img src="{{ item.tag.qr_image.url }}" alt="{{ item.tag.code }}">
+        {% endif %}
+
+        <div class="label-bottom">
+            <div class="name">{{ item.equipment.name }}</div>
+            <div class="inv">Инв.: {{ item.equipment.inventory_number|default:"-" }}</div>
+            <div>Сер.: {{ item.equipment.serial_number|default:"-" }}</div>
+        </div>
+    </div>
+{% endfor %}
 
 </body>
 </html>
