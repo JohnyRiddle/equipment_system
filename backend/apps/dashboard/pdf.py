@@ -42,8 +42,8 @@ def qr_image_reader(payload):
     return ImageReader(buffer)
 
 
-def draw_text_lines(pdf, lines, x, y, max_width, line_height, max_lines=4):
-    pdf.setFont(FONT_NAME, 8)
+def draw_text_lines(pdf, lines, x, y, max_width, line_height, max_lines=4, font_size=8, align='left'):
+    pdf.setFont(FONT_NAME, font_size)
     current_y = y
     rendered = 0
 
@@ -54,18 +54,24 @@ def draw_text_lines(pdf, lines, x, y, max_width, line_height, max_lines=4):
         current = ''
         for word in words:
             candidate = f'{current} {word}'.strip()
-            if pdf.stringWidth(candidate, FONT_NAME, 8) <= max_width:
+            if pdf.stringWidth(candidate, FONT_NAME, font_size) <= max_width:
                 current = candidate
                 continue
             if current:
-                pdf.drawString(x, current_y, current)
+                line_x = x
+                if align == 'center':
+                    line_x = x + (max_width - pdf.stringWidth(current, FONT_NAME, font_size)) / 2
+                pdf.drawString(line_x, current_y, current)
                 current_y -= line_height
                 rendered += 1
                 current = word
             if rendered >= max_lines:
                 return
         if current and rendered < max_lines:
-            pdf.drawString(x, current_y, current)
+            line_x = x
+            if align == 'center':
+                line_x = x + (max_width - pdf.stringWidth(current, FONT_NAME, font_size)) / 2
+            pdf.drawString(line_x, current_y, current)
             current_y -= line_height
             rendered += 1
         if rendered >= max_lines:
@@ -88,11 +94,11 @@ def build_qr_labels_pdf(equipment_items):
     margin_top = 45 * mm
     margin_bottom = 12 * mm
     gap = 4 * mm
-    columns = 2
-    rows = 4
-    label_width = (width - margin_x * 2 - gap) / columns
-    label_height = (height - margin_top - margin_bottom - gap * (rows - 1)) / rows
-    qr_size = 31 * mm
+    columns = 3
+    rows = 5
+    label_width = 55 * mm
+    label_height = 40 * mm
+    qr_size = 22 * mm
 
     for index, equipment in enumerate(equipment_items):
         position = index % (columns * rows)
@@ -108,19 +114,16 @@ def build_qr_labels_pdf(equipment_items):
         pdf.setLineWidth(0.7)
         pdf.roundRect(x, y, label_width, label_height, 4, stroke=1, fill=0)
 
-        pdf.setFillColor(colors.HexColor('#ff4c34'))
-        pdf.rect(x, y + label_height - 3, label_width, 3, stroke=0, fill=1)
-
         payload = build_equipment_qr_payload(equipment)
-        qr_x = x + 5 * mm
-        qr_y = y + label_height - qr_size - 13 * mm
+        qr_x = x + (label_width - qr_size) / 2
+        qr_y = y + 10 * mm
         qr_code = get_active_qr_code(equipment)
 
         if qr_code:
             pdf.setFillColor(colors.HexColor('#0b0b0c'))
             pdf.setFont(FONT_NAME, 9)
             code_width = pdf.stringWidth(qr_code, FONT_NAME, 9)
-            pdf.drawString(qr_x + (qr_size - code_width) / 2, qr_y + qr_size + 2.5 * mm, qr_code)
+            pdf.drawString(x + (label_width - code_width) / 2, y + label_height - 5 * mm, qr_code)
 
         pdf.drawImage(
             qr_image_reader(payload),
@@ -132,25 +135,21 @@ def build_qr_labels_pdf(equipment_items):
             mask='auto',
         )
 
-        text_x = x + qr_size + 9 * mm
-        text_y = y + label_height - 12 * mm
-        text_width = label_width - qr_size - 14 * mm
-
         pdf.setFillColor(colors.HexColor('#0b0b0c'))
-        pdf.setFont(FONT_NAME, 10)
         draw_text_lines(
             pdf,
             [
                 equipment.name,
                 f'Инв.: {equipment.inventory_number or "—"}',
                 f'Сер.: {equipment.serial_number or "—"}',
-                f'{equipment.location or "—"} / {equipment.warehouse or "—"}',
             ],
-            text_x,
-            text_y,
-            text_width,
-            4.2 * mm,
-            max_lines=5,
+            x + 3 * mm,
+            y + 6.5 * mm,
+            label_width - 6 * mm,
+            2.6 * mm,
+            max_lines=3,
+            font_size=6,
+            align='center',
         )
 
     if not equipment_items:
