@@ -2,6 +2,8 @@ import uuid
 
 from django.db import models
 
+from .inventory_numbers import ensure_inventory_number
+
 
 class EquipmentCategory(models.Model):
     name = models.CharField(
@@ -196,6 +198,15 @@ class Equipment(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        assigned_inventory_number = False
+        if not self.inventory_number:
+            ensure_inventory_number(self)
+            assigned_inventory_number = True
+        if assigned_inventory_number and kwargs.get('update_fields') is not None:
+            kwargs['update_fields'] = set(kwargs['update_fields']) | {'inventory_number'}
+        super().save(*args, **kwargs)
 
 
 class EquipmentNote(models.Model):
